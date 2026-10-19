@@ -2,31 +2,31 @@
    1. المتغيرات اللونية والهوية البصرية (النهاري العاجي + الليلي الزمردي)
    ========================================================================== */
 :root {
-    --bg-main: #f6f4ee;
+    --bg-main: #f6f3ec;
     --bg-surface: #ffffff;
-    --bg-elevated: #ede8dd;
+    --bg-elevated: #ece7db;
     --bg-glass: rgba(255, 255, 255, 0.9);
     --primary: #12221e;
     --primary-light: #1c352f;
     --accent: #c5934c;
     --accent-hover: #ab7b36;
     --accent-soft: rgba(197, 147, 76, 0.13);
-    --accent-border: rgba(197, 147, 76, 0.34);
+    --accent-border: rgba(197, 147, 76, 0.36);
     --text-main: #141d1b;
-    --text-muted: #5f6c68;
-    --border-color: #e2ddd2;
+    --text-muted: #5e6b67;
+    --border-color: #e1dcd0;
     --danger: #d9383a;
     --danger-soft: rgba(217, 56, 58, 0.1);
     --warning: #d97706;
     --warning-soft: rgba(217, 119, 6, 0.12);
     --success: #1b8a52;
     --success-soft: rgba(27, 138, 82, 0.12);
-    --samsung-bar: rgba(26, 30, 31, 0.95);
-    --samsung-pill: #43484b;
+    --samsung-bar: rgba(24, 28, 29, 0.95);
+    --samsung-pill: #42474a;
     --shadow-xs: 0 2px 8px rgba(18, 34, 30, 0.04);
     --shadow-sm: 0 6px 18px rgba(18, 34, 30, 0.07);
     --shadow-md: 0 14px 32px rgba(18, 34, 30, 0.11);
-    --shadow-lg: 0 24px 50px rgba(18, 34, 30, 0.2);
+    --shadow-lg: 0 24px 50px rgba(18, 34, 30, 0.22);
     --radius-sm: 10px;
     --radius-md: 16px;
     --radius-lg: 22px;
@@ -34,29 +34,29 @@
 }
 
 body.dark-mode {
-    --bg-main: #0a0e0d;
-    --bg-surface: #121917;
-    --bg-elevated: #1a2321;
-    --bg-glass: rgba(18, 25, 23, 0.9);
+    --bg-main: #090d0c;
+    --bg-surface: #111816;
+    --bg-elevated: #192220;
+    --bg-glass: rgba(17, 24, 22, 0.9);
     --primary: #1d3630;
     --primary-light: #284941;
-    --accent: #d6a45c;
-    --accent-hover: #e3b570;
-    --accent-soft: rgba(214, 164, 92, 0.15);
-    --accent-border: rgba(214, 164, 92, 0.38);
-    --text-main: #f1f5f4;
-    --text-muted: #94a39e;
-    --border-color: #222f2c;
-    --samsung-bar: rgba(18, 21, 22, 0.96);
+    --accent: #d8a65e;
+    --accent-hover: #e5b773;
+    --accent-soft: rgba(216, 166, 94, 0.15);
+    --accent-border: rgba(216, 166, 94, 0.4);
+    --text-main: #f2f6f5;
+    --text-muted: #96a5a0;
+    --border-color: #22302d;
+    --samsung-bar: rgba(16, 20, 21, 0.96);
     --samsung-pill: #34393c;
     --shadow-xs: 0 2px 8px rgba(0, 0, 0, 0.35);
     --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.45);
     --shadow-md: 0 14px 32px rgba(0, 0, 0, 0.55);
-    --shadow-lg: 0 24px 54px rgba(0, 0, 0, 0.75);
+    --shadow-lg: 0 24px 54px rgba(0, 0, 0, 0.78);
 }
 
 /* ==========================================================================
-   2. الأساسيات وضمان استجابة النقر واللمس في كافة الأجهزة والمتصفحات
+   2. الأساسيات والنقوش التراثية اليمنية والعربية الليزرية (Laser Heritage SVG)
    ========================================================================== */
 * {
     box-sizing: border-box;
@@ -78,12 +78,33 @@ body {
     background-color: var(--bg-main);
     color: var(--text-main);
     line-height: 1.65;
-    padding-bottom: 118px;
+    padding-bottom: 120px;
     overflow-x: hidden;
+    position: relative;
     transition: background-color 0.28s ease, color 0.28s ease;
 }
 
-button, a, summary, label, select, input[type="checkbox"] {
+/* طبقة النقوش الهندسية الليزرية (مستوحاة من القمرية اليمنية والزخارف العربية) */
+.heritage-laser-backdrop {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.055;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23c5934c' stroke-width='1'%3E%3Cpolygon points='60,6 76,44 114,60 76,76 60,114 44,76 6,60 44,44'/%3E%3Cpolygon points='60,18 90,30 102,60 90,90 60,102 30,90 18,60 30,30'/%3E%3Ccircle cx='60' cy='60' r='22'/%3E%3Ccircle cx='60' cy='60' r='8'/%3E%3Cpath d='M0,60 L18,60 M102,60 L120,60 M60,0 L60,18 M60,102 L60,120'/%3E%3Crect x='38' y='38' width='44' height='44' transform='rotate(45 60 60)'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 130px 130px;
+}
+
+body.dark-mode .heritage-laser-backdrop {
+    opacity: 0.075;
+}
+
+header, main, .modal-backdrop {
+    position: relative;
+    z-index: 1;
+}
+
+button, a, summary, label, select, input[type="checkbox"], input[type="radio"] {
     cursor: pointer;
     touch-action: manipulation;
     user-select: none;
@@ -104,7 +125,7 @@ button:disabled {
 }
 
 /* ==========================================================================
-   3. الإشعار العلوي القابل للإغلاق (✕) والهيدر بالشعار المفرغ الجديد
+   3. الإشعار العلوي والهيدر بالشعار المفرغ الجديد ومعالجة الوضع الليلي
    ========================================================================== */
 .top-notice-bar {
     background: linear-gradient(90deg, #0d1916, var(--primary), #0d1916);
@@ -112,6 +133,8 @@ button:disabled {
     font-size: 0.78rem;
     padding: 7px 16px;
     border-bottom: 1px solid var(--accent-border);
+    position: relative;
+    z-index: 101;
 }
 
 .notice-inner {
@@ -182,12 +205,11 @@ button:disabled {
     margin-bottom: 12px;
 }
 
-/* تمركز وتموضع الشعار المفرغ الجديد + العبارة التحتية القابلة للانسدال */
 .brand-hero-stack {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
 }
 
@@ -203,9 +225,9 @@ button:disabled {
 }
 
 #headerWideLogoImg {
-    height: 46px;
+    height: 48px;
     width: auto;
-    max-width: 195px;
+    max-width: 205px;
     object-fit: contain;
     border-radius: 10px;
     display: block;
@@ -213,29 +235,28 @@ button:disabled {
 }
 
 #headerWideLogoImg.wide-logo-ready {
-    height: 52px;
-    max-width: 225px;
+    height: 54px;
+    max-width: 235px;
     border-radius: 0;
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+    filter: drop-shadow(0 2px 6px rgba(18, 34, 30, 0.1));
 }
 
 body.dark-mode #headerWideLogoImg.wide-logo-ready {
-    filter: brightness(1.3) contrast(1.08) drop-shadow(0 2px 10px rgba(214, 164, 92, 0.22));
+    filter: drop-shadow(0 2px 12px rgba(216, 166, 94, 0.25));
 }
 
 .tagline-dropdown-trigger {
     background: none;
     border: none;
-    padding: 2px 4px;
+    padding: 2px 6px;
     border-radius: 6px;
     display: inline-flex;
     align-items: center;
     gap: 4px;
     color: var(--accent);
-    font-size: 0.77rem;
+    font-size: 0.78rem;
     font-weight: 700;
-    letter-spacing: 0.1px;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .tagline-dropdown-trigger:hover {
@@ -251,7 +272,7 @@ body.dark-mode #headerWideLogoImg.wide-logo-ready {
     transform: rotate(180deg);
 }
 
-/* البطاقة المنسدلة لوصف مكتبة وموسوعة الحجرية */
+/* البطاقة التعريفية المنسدلة تحت الشعار */
 .brand-dropdown-panel {
     margin-bottom: 12px;
     animation: smoothDrop 0.26s var(--ease-spring);
@@ -277,7 +298,7 @@ body.dark-mode #headerWideLogoImg.wide-logo-ready {
 .brand-dropdown-content p {
     font-size: 0.83rem;
     color: var(--text-muted);
-    line-height: 1.7;
+    line-height: 1.72;
 }
 
 @keyframes smoothDrop {
@@ -318,7 +339,7 @@ body.dark-mode #headerWideLogoImg.wide-logo-ready {
 }
 
 /* ==========================================================================
-   4. شريط البحث الذكي + زر التصفية (مع إصلاح التناسق الكامل على الجوال)
+   4. البحث الذكي، الفلاتر المنسدلة، وتبويب «إصدارات الحجرية»
    ========================================================================== */
 .search-bar-row {
     display: flex;
@@ -330,7 +351,7 @@ body.dark-mode #headerWideLogoImg.wide-logo-ready {
 
 .search-input-group {
     flex: 1;
-    min-width: 0; /* يمنع خروج زر التصفية خارج شاشة الجوال */
+    min-width: 0;
     display: flex;
     align-items: center;
     background: var(--bg-surface);
@@ -404,7 +425,6 @@ body.dark-mode #headerWideLogoImg.wide-logo-ready {
     color: var(--accent);
 }
 
-/* درج الفلاتر المنسدل (22 دولة عربية + العصور) */
 .filters-collapsible-drawer {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -508,6 +528,11 @@ body.dark-mode #headerWideLogoImg.wide-logo-ready {
     transform: translateY(-1px);
 }
 
+.hujariya-press-tab {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, var(--accent-soft), rgba(18, 34, 30, 0.06));
+}
+
 .yemeni-heritage-tab {
     border-color: var(--accent-border);
     background: var(--accent-soft);
@@ -537,17 +562,17 @@ body.dark-mode #headerWideLogoImg.wide-logo-ready {
 
 body.dark-mode .cat-tab.active {
     background: var(--accent);
-    color: #0a0e0d;
+    color: #090d0c;
     border-color: var(--accent);
 }
 
 body.dark-mode .cat-tab.active i,
 body.dark-mode .cat-tab.active .tab-count {
-    color: #0a0e0d;
+    color: #090d0c;
 }
 
 /* ==========================================================================
-   5. الرفوف والبطاقات الخارجية النظيفة (غلاف + عنوان + مؤلف فقط)
+   5. شريط استئناف القراءة السحابي + البطاقات الخارجية النظيفة
    ========================================================================== */
 .main-container {
     max-width: 1280px;
@@ -569,6 +594,36 @@ body.dark-mode .cat-tab.active .tab-count {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* شريط استئناف القراءة السحابي السريع */
+.resume-reading-strip {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--accent-border);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    box-shadow: var(--shadow-xs);
+}
+
+.resume-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.resume-info img {
+    width: 42px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 7px;
+    border: 1px solid var(--accent);
+}
+
+/* الرفوف النظيفة (غلاف + عنوان + مؤلف فقط) */
 .clean-books-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
@@ -663,23 +718,30 @@ body.dark-mode .cat-tab.active .tab-count {
 }
 
 /* ==========================================================================
-   6. الصفحات المستقلة (الكتاب، المؤلف، دار النشر) والقوائم المنسدلة (Accordions)
+   6. الصفحات المستقلة، البطاقة الببليوغرافية، وشهادة «إصدارات الحجرية»
    ========================================================================== */
 .subpage-top-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
     margin-bottom: 16px;
     gap: 10px;
+}
+
+.subpage-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .back-pill-btn {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     color: var(--text-main);
-    padding: 8px 16px;
+    padding: 8px 15px;
     border-radius: 999px;
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
@@ -701,6 +763,8 @@ body.dark-mode .cat-tab.active .tab-count {
     padding: 22px;
     box-shadow: var(--shadow-sm);
     margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
 }
 
 .book-hero-top {
@@ -744,9 +808,22 @@ body.dark-mode .cat-tab.active .tab-count {
     gap: 4px;
 }
 
+.press-exclusive-badge {
+    background: linear-gradient(135deg, #c5934c, #9a6b28);
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 3px 10px rgba(197, 147, 76, 0.35);
+}
+
 .book-hero-info h1 {
     font-family: 'Amiri', serif;
-    font-size: 1.75rem;
+    font-size: 1.78rem;
     line-height: 1.25;
     color: var(--text-main);
     margin-bottom: 10px;
@@ -784,6 +861,54 @@ body.dark-mode .cat-tab.active .tab-count {
     gap: 10px;
     flex-wrap: wrap;
     margin-top: 14px;
+}
+
+/* شهادة التوثيق والترقيم لإصدارات الحجرية */
+.certificate-box {
+    background: linear-gradient(135deg, var(--bg-main), var(--accent-soft));
+    border: 1.5px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 14px;
+    position: relative;
+}
+
+.certificate-serial {
+    font-family: monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background: var(--primary);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 8px;
+    letter-spacing: 0.8px;
+    display: inline-block;
+}
+
+.bibliographic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.biblio-cell {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    padding: 10px 12px;
+    border-radius: 10px;
+}
+
+.biblio-cell small {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.biblio-cell strong {
+    font-size: 0.86rem;
+    color: var(--text-main);
 }
 
 /* القوائم المنسدلة التفاعلية (Accordions) */
@@ -853,6 +978,26 @@ body.dark-mode .cat-tab.active .tab-count {
     color: var(--text-main);
     line-height: 1.75;
     animation: smoothDrop 0.22s var(--ease-spring);
+}
+
+/* بطاقات الاقتباسات والقبسات */
+.quote-card {
+    background: var(--bg-main);
+    border-right: 3.5px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    font-family: 'Amiri', serif;
+    font-size: 1.05rem;
+}
+
+.quote-card footer {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
 }
 
 /* ==========================================================================
@@ -994,7 +1139,226 @@ body.dark-mode .cat-tab.active .tab-count {
 }
 
 /* ==========================================================================
-   8. دليل المؤلفين ودور النشر وصفحاتها المستقلة
+   8. الربط السحابي للمؤلفين، اختيار نوع الإصدار، والقارئ السحابي المطور
+   ========================================================================== */
+.publish-mode-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.mode-radio-card {
+    background: var(--bg-main);
+    border: 1.5px solid var(--border-color);
+    border-radius: 12px;
+    padding: 11px 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    transition: all 0.2s ease;
+}
+
+.mode-radio-card input[type="radio"] {
+    display: none;
+}
+
+.mode-radio-card i {
+    font-size: 1.35rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.mode-radio-card strong {
+    display: block;
+    font-size: 0.84rem;
+    color: var(--text-main);
+}
+
+.mode-radio-card small {
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    display: block;
+}
+
+.mode-radio-card.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.mode-radio-card.active i {
+    color: var(--accent);
+}
+
+.author-role-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.cloud-author-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cloud-input-icon {
+    position: absolute;
+    right: 12px;
+    color: var(--accent);
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
+.cloud-author-input-wrap input {
+    padding-right: 36px !important;
+}
+
+.cloud-suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--accent);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 50;
+    margin-top: 4px;
+}
+
+.cloud-suggestion-item {
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.cloud-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.cloud-suggestion-item:hover {
+    background: var(--accent-soft);
+}
+
+.cloud-suggestion-item img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--accent);
+}
+
+/* القارئ السحابي المطور (Advanced Cloud PDF Reader) */
+.reader-smart-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 16px;
+}
+
+.reader-title-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.reader-sync-pill {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ebd9be;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.reader-toolbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.reader-page-tracker {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+}
+
+.reader-page-tracker input {
+    width: 54px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.82rem;
+}
+
+.reader-tool-btn {
+    background: rgba(255, 255, 255, 0.14);
+    border: none;
+    color: #ffffff;
+    padding: 6px 11px;
+    border-radius: 9px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.reader-tool-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.reader-notes-drawer {
+    background: var(--bg-surface);
+    border-bottom: 1.5px solid var(--accent);
+    padding: 10px 16px;
+}
+
+.notes-drawer-inner label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+}
+
+.notes-drawer-inner textarea {
+    flex: 1;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-size: 0.83rem;
+}
+
+/* فلتر القراءة الليلي المريح للعين داخل القارئ */
+.pdf-frame-wrap.night-filter-active iframe {
+    filter: sepia(0.28) brightness(0.86) contrast(0.95);
+}
+
+/* ==========================================================================
+   9. دليل المؤلفين ودور النشر وحسابي والإدارة
    ========================================================================== */
 .segmented-control {
     display: flex;
@@ -1045,12 +1409,12 @@ body.dark-mode .cat-tab.active .tab-count {
 
 body.dark-mode .seg-btn.active {
     background: var(--accent);
-    color: #0a0e0d;
+    color: #090d0c;
 }
 
 body.dark-mode .seg-btn.active .seg-badge {
     background: rgba(0, 0, 0, 0.2);
-    color: #0a0e0d;
+    color: #090d0c;
 }
 
 .directory-action-bar {
@@ -1121,9 +1485,6 @@ body.dark-mode .seg-btn.active .seg-badge {
     overflow: hidden;
 }
 
-/* ==========================================================================
-   9. حسابي، الإعدادات، الإدارة، ومحادثات البلاغات
-   ========================================================================== */
 .profile-summary-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -1300,7 +1661,7 @@ body.dark-mode .seg-btn.active .seg-badge {
 }
 
 /* ==========================================================================
-   10. شريط التنقل السفلي التفاعلي (فقاعة سامسونج One UI)
+   10. شريط التنقل السفلي التفاعلي (فقاعة سامسونج One UI) والنوافذ المنبثقة
    ========================================================================== */
 .samsung-pill-navbar {
     position: fixed;
@@ -1379,13 +1740,10 @@ body.dark-mode .seg-btn.active .seg-badge {
     font-weight: 700;
 }
 
-/* ==========================================================================
-   11. النوافذ المنبثقة، الحقول، والأزرار
-   ========================================================================== */
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(10, 16, 15, 0.72);
+    background: rgba(10, 16, 15, 0.74);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
     z-index: 2000;
@@ -1397,7 +1755,7 @@ body.dark-mode .seg-btn.active .seg-badge {
 .modal-card {
     background: var(--bg-surface);
     width: 100%;
-    max-width: 560px;
+    max-width: 580px;
     max-height: 91vh;
     border-radius: 22px 22px 0 0;
     display: flex;
@@ -1409,8 +1767,8 @@ body.dark-mode .seg-btn.active .seg-badge {
 
 .modal-compact { max-width: 410px; }
 .modal-fullscreen {
-    max-width: 1020px;
-    height: 92vh;
+    max-width: 1080px;
+    height: 93vh;
 }
 
 @keyframes modalSlideUp {
@@ -1429,7 +1787,7 @@ body.dark-mode .seg-btn.active .seg-badge {
 }
 
 .modal-header h3 {
-    font-size: 1rem;
+    font-size: 0.98rem;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -1447,6 +1805,7 @@ body.dark-mode .seg-btn.active .seg-badge {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .modal-body {
@@ -1620,9 +1979,9 @@ body.dark-mode .seg-btn.active .seg-badge {
 }
 
 /* ==========================================================================
-   12. التجاوب الشامل: الجوالات الصغيرة، الآيباد، الكمبيوتر، وشاشات التلفزيون
+   11. التجاوب الشامل: الجوالات، الأجهزة اللوحية، الكمبيوتر، وشاشات التلفزيون
    ========================================================================== */
-@media (max-width: 400px) {
+@media (max-width: 420px) {
     .filter-toggle-btn {
         padding: 0 11px;
     }
@@ -1633,6 +1992,9 @@ body.dark-mode .seg-btn.active .seg-badge {
         height: 46px;
         max-width: 185px;
     }
+    .publish-mode-selector {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 600px) {
@@ -1640,15 +2002,13 @@ body.dark-mode .seg-btn.active .seg-badge {
     .book-hero-cover { width: 122px; }
 }
 
-/* الأجهزة اللوحية (iPad / Tablets) */
 @media (min-width: 768px) {
     .modal-backdrop { align-items: center; padding: 20px; }
     .modal-card { border-radius: 22px; }
     .clean-books-grid { grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 26px 20px; }
-    #headerWideLogoImg.wide-logo-ready { height: 58px; max-width: 250px; }
+    #headerWideLogoImg.wide-logo-ready { height: 58px; max-width: 255px; }
 }
 
-/* شاشات الكمبيوتر المكتبية واللابتوب */
 @media (min-width: 1024px) {
     .clean-books-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px 22px; }
     .directory-cards-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
@@ -1656,10 +2016,9 @@ body.dark-mode .seg-btn.active .seg-badge {
     .samsung-pill-navbar { max-width: 540px; }
 }
 
-/* الشاشات العريضة والتلفزيونات الذكية (4K / Smart TVs) */
 @media (min-width: 1440px) {
     html { font-size: 17px; }
     .header-container, .main-container, .notice-inner { max-width: 1520px; }
     .clean-books-grid { grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 32px 24px; }
-    #headerWideLogoImg.wide-logo-ready { height: 66px; max-width: 290px; }
+    #headerWideLogoImg.wide-logo-ready { height: 66px; max-width: 295px; }
 }
