@@ -3,7 +3,7 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signO
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // ============================================================================
-// 1. تهيئة فايربيس والثوابت الأساسية
+// 1. إعدادات فايربيس والثوابت وقائمة الدول العربية الشاملة (جامعة الدول العربية)
 // ============================================================================
 const firebaseConfig = {
     apiKey: "AIzaSyBtj65b-J9L7Oxf3iR1EE5tinF5FahVLpw",
@@ -22,13 +22,38 @@ const db = getFirestore(app);
 const IMGBB_API_KEY = "E9d57b2ba79217bb8bde762b332b7c62".trim().toLowerCase();
 const ADMIN_EMAILS = ["rawialshamal@gmail.com", "a1hmedrashad@gmail.com"];
 
+const ARAB_COUNTRIES = [
+    { name: "اليمن", flag: "🇾🇪" },
+    { name: "السعودية", flag: "🇸🇦" },
+    { name: "مصر", flag: "🇪🇬" },
+    { name: "الإمارات", flag: "🇦🇪" },
+    { name: "قطر", flag: "🇶🇦" },
+    { name: "الكويت", flag: "🇰🇼" },
+    { name: "سلطنة عمان", flag: "🇴🇲" },
+    { name: "البحرين", flag: "🇧🇭" },
+    { name: "العراق", flag: "🇮🇶" },
+    { name: "سوريا", flag: "🇸🇾" },
+    { name: "الأردن", flag: "🇯🇴" },
+    { name: "فلسطين", flag: "🇵🇸" },
+    { name: "لبنان", flag: "🇱🇧" },
+    { name: "السودان", flag: "🇸🇩" },
+    { name: "ليبيا", flag: "🇱🇾" },
+    { name: "تونس", flag: "🇹🇳" },
+    { name: "الجزائر", flag: "🇩🇿" },
+    { name: "المغرب", flag: "🇲🇦" },
+    { name: "موريتانيا", flag: "🇲🇷" },
+    { name: "الصومال", flag: "🇸🇴" },
+    { name: "جيبوتي", flag: "🇩🇯" },
+    { name: "جزر القمر", flag: "🇰🇲" }
+];
+
 const $ = (id) => document.getElementById(id);
 
 function isUserAdmin(user) {
     return Boolean(user && user.email && ADMIN_EMAILS.includes(user.email.trim().toLowerCase()));
 }
 
-// حالة النظام
+// حالة المنصة
 let currentUser = null;
 let isAdmin = false;
 let allBooks = [];
@@ -46,19 +71,17 @@ let activeCountry = "all";
 let activeEra = "all";
 let activePubScope = "all";
 let activeMyUploadsFilter = "all";
-let currentOpenBook = null;
-let currentOpenAuthorName = "";
 let initialDeepLinkHandled = false;
 
 // ============================================================================
-// 2. الخوارزمية الصامتة في الخلفية (تخصيص الترتيب حسب اهتمام المستخدم بدون إشعارات)
+// 2. الخوارزمية الصامتة في الخلفية (ترتيب ذكي خفي حسب اهتمامات القارئ)
 // ============================================================================
 let aiProfile = JSON.parse(localStorage.getItem("hujariya_silent_ai") || '{"categories":{},"authors":{},"countries":{},"eras":{},"queries":[]}');
 
 function trackSilentSignal(type, value, weight = 1) {
     if (!value) return;
     if (type === "query") {
-        const q = value.trim().toLowerCase();
+        const q = normalizeArabicText(value);
         if (q.length > 2 && !aiProfile.queries.includes(q)) {
             aiProfile.queries.unshift(q);
             aiProfile.queries = aiProfile.queries.slice(0, 15);
@@ -71,41 +94,121 @@ function trackSilentSignal(type, value, weight = 1) {
 
 function computeSilentBookScore(book) {
     let score = 0;
-    const normAuth = normalizeArabic(book.author);
+    const normAuth = normalizeArabicIdentity(book.author);
     const cat = normalizeCategory(book.category);
     const country = book.country || "اليمن";
 
     score += (aiProfile.categories[cat] || 0) * 4;
     score += (aiProfile.authors[normAuth] || 0) * 6;
-    score += (aiProfile.countries[country] || 0) * 2;
+    score += (aiProfile.countries[country] || 0) * 2.5;
     score += (aiProfile.eras[book.era] || 0) * 1.5;
 
     if (userFavorites.includes(book.id)) score += 3;
 
+    const searchableTitleAuth = normalizeArabicText(`${book.title || ""} ${book.author || ""}`);
     aiProfile.queries.forEach(q => {
-        if ((book.title || "").toLowerCase().includes(q) || (book.author || "").toLowerCase().includes(q)) {
-            score += 5;
-        }
+        if (q && searchableTitleAuth.includes(q)) score += 5;
     });
 
     score += (book.ratingCount || 0) * 0.8;
-    // عامل زمني خفيف لدمج الحداثة مع الاهتمامات الشخصية
     const ageScore = (book.createdAt || 0) / 1e12;
     return score + ageScore;
 }
 
 // ============================================================================
-// 3. دوال مساعدة: الروابط المباشرة، ضغط الصور، تطبيع النصوص، و SEO
+// 3. محرك التطبيع اللغوي والبحث الذكي الفائق الدقة (Smart Arabic Search)
 // ============================================================================
-function normalizeArabic(text) {
+// تطبيع عام للنصوص العربية لأغراض البحث الذكي وتجاهل الفروق الإملائية
+function normalizeArabicText(text) {
     if (!text) return "";
-    return text.trim().toLowerCase()
-        .replace(/[\u064B-\u065F]/g, "")
-        .replace(/[أإآ]/g, "ا")
+    return String(text)
+        .toLowerCase()
+        .replace(/[\u064B-\u065F\u0670\u0640]/g, "") // إزالة التشكيل والمد (التطويل)
+        .replace(/[أإآٱ]/g, "ا")
         .replace(/ة/g, "ه")
-        .replace(/ى/g, "ي")
-        .replace(/^(ال|روايه|رواية|كتاب|ديوان|مؤلف)\s+/g, "")
-        .replace(/\s+/g, " ");
+        .replace(/[ىئ]/g, "ي")
+        .replace(/ؤ/g, "و")
+        .replace(/[^\u0600-\u06FFa-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+// تجريد الكلمة الواحدة من "ال" التعريف والسوابق الشائعة للمطابقة الذكية
+function stripArabicPrefixes(word) {
+    if (!word || word.length <= 3) return word;
+    return word.replace(/^(وال|بال|كال|فال|لل|ال)/, "");
+}
+
+// تطبيع الهويات (أسماء الكتّاب، العناوين، دور النشر) لمنع التكرار والربط الشبكي
+function normalizeArabicIdentity(text) {
+    if (!text) return "";
+    return normalizeArabicText(text)
+        .replace(/^(روايه|كتاب|ديوان|مؤلف|الدكتور|دكتور|الاستاذ|الشاعر|الكاتب|دار|مؤسسه|مكتبه)\s+/g, "")
+        .split(" ")
+        .map(stripArabicPrefixes)
+        .join(" ")
+        .trim();
+}
+
+// حساب درجة تطابق الكتاب مع استعلام البحث الذكي (يرجع 0 إذا لم يتطابق)
+function computeSmartSearchRelevance(book, rawQuery) {
+    const cleanQuery = normalizeArabicText(rawQuery);
+    if (!cleanQuery) return 1;
+
+    const queryTokens = cleanQuery.split(" ").filter(Boolean);
+    if (queryTokens.length === 0) return 1;
+
+    const normTitle = normalizeArabicText(book.title);
+    const normAuthor = normalizeArabicText(book.author);
+    const normPublisher = normalizeArabicText(book.publisher);
+    const normCountry = normalizeArabicText(book.country || "اليمن");
+    const normCategory = normalizeArabicText(book.category);
+    const normCityYear = normalizeArabicText(book.cityYear);
+    const normDesc = normalizeArabicText(book.description);
+
+    const fullCorpus = `${normTitle} ${normAuthor} ${normPublisher} ${normCountry} ${normCategory} ${normCityYear} ${normDesc}`;
+    const corpusWords = fullCorpus.split(" ").filter(Boolean);
+    const strippedCorpusWords = corpusWords.map(stripArabicPrefixes);
+
+    let totalRelevance = 0;
+
+    // تطابق العبارة الكاملة يمنح أولوية قصوى
+    if (normTitle.includes(cleanQuery)) totalRelevance += 60;
+    if (normAuthor.includes(cleanQuery)) totalRelevance += 50;
+    if (normPublisher.includes(cleanQuery)) totalRelevance += 40;
+
+    // يجب أن تتطابق جميع كلمات البحث (أو جذورها بدون أل التعريف) مع بيانات الكتاب
+    for (const token of queryTokens) {
+        const strippedToken = stripArabicPrefixes(token);
+        let tokenScore = 0;
+
+        if (normTitle.includes(token) || (strippedToken.length >= 2 && normTitle.includes(strippedToken))) {
+            tokenScore += 25;
+        }
+        if (normAuthor.includes(token) || (strippedToken.length >= 2 && normAuthor.includes(strippedToken))) {
+            tokenScore += 20;
+        }
+        if (normPublisher.includes(token) || (strippedToken.length >= 2 && normPublisher.includes(strippedToken))) {
+            tokenScore += 15;
+        }
+        if (normCountry.includes(token) || normCategory.includes(token) || normCityYear.includes(token)) {
+            tokenScore += 12;
+        }
+        if (tokenScore === 0) {
+            // فحص في الوصف أو الجذور المجردة
+            const matchedInDesc = fullCorpus.includes(token) ||
+                (strippedToken.length >= 2 && strippedCorpusWords.some(w => w.includes(strippedToken) || strippedToken.includes(w)));
+            if (matchedInDesc) {
+                tokenScore += 6;
+            }
+        }
+
+        // إذا كانت إحدى الكلمات المكتوبة لا وجود لها إطلاقاً في الكتاب، يستبعد الكتاب
+        if (tokenScore === 0) return 0;
+        totalRelevance += tokenScore;
+    }
+
+    return totalRelevance;
 }
 
 function normalizeCategory(cat) {
@@ -133,6 +236,17 @@ function getAuthorDirectUrl(authorName) {
     return `${getBaseSiteUrl()}?author=${encodeURIComponent(authorName)}`;
 }
 
+function getPublisherDirectUrl(publisherName) {
+    return `${getBaseSiteUrl()}?publisher=${encodeURIComponent(publisherName)}`;
+}
+
+function getCountrySelectOptionsHtml(selectedCountry = "اليمن") {
+    return ARAB_COUNTRIES.map(c =>
+        `<option value="${escapeHtml(c.name)}" ${c.name === selectedCountry ? "selected" : ""}>${c.flag} ${escapeHtml(c.name)}</option>`
+    ).join("");
+}
+
+// ضغط الصور في المتصفح لرفع فوري وسريع
 async function compressAndUploadImage(file, maxWidth = 820, quality = 0.78) {
     const compressedBlob = await new Promise((resolve) => {
         const reader = new FileReader();
@@ -186,12 +300,12 @@ function toEmbedDrivePreview(url) {
     return id ? `https://drive.google.com/file/d/${id}/preview` : url;
 }
 
-// تحديث بيانات Schema.org ومحركات البحث والذكاء الاصطناعي (SEO & AIO)
-function updateSeoAndUrl(book = null, author = null, pushUrl = true) {
+// تحديث بيانات Schema.org ومحركات البحث والروابط المباشرة (SEO & AIO)
+function updateSeoAndUrl({ book = null, author = null, publisher = null, pushUrl = true } = {}) {
     const schemaEl = $("dynamicJsonLd");
     if (book) {
         const directUrl = getBookDirectUrl(book.id);
-        document.title = `${book.title} - ${book.author} | مكتبة الحجرية`;
+        document.title = `${book.title} - ${book.author} | مكتبة وموسوعة الحجرية`;
         if (pushUrl) window.history.replaceState({ bookId: book.id }, "", `?book=${encodeURIComponent(book.id)}`);
         if (schemaEl) {
             schemaEl.textContent = JSON.stringify({
@@ -204,26 +318,43 @@ function updateSeoAndUrl(book = null, author = null, pushUrl = true) {
                 "image": book.coverUrl,
                 "url": directUrl,
                 "inLanguage": "ar",
+                "countryOfOrigin": book.country || "اليمن",
                 "genre": normalizeCategory(book.category)
             });
         }
     } else if (author) {
         const directUrl = getAuthorDirectUrl(author.name);
-        document.title = `${author.name} | مكتبة وموسوعة الحجرية`;
+        document.title = `المؤلف ${author.name} | مكتبة وموسوعة الحجرية`;
         if (pushUrl) window.history.replaceState({ authorName: author.name }, "", `?author=${encodeURIComponent(author.name)}`);
         if (schemaEl) {
             schemaEl.textContent = JSON.stringify({
                 "@context": "https://schema.org",
                 "@type": "Person",
                 "name": author.name,
+                "nationality": author.country || "اليمن",
                 "description": author.bio,
                 "image": author.photoUrl,
                 "url": directUrl
             });
         }
+    } else if (publisher) {
+        const directUrl = getPublisherDirectUrl(publisher.name);
+        document.title = `${publisher.name} | دار نشر في مكتبة وموسوعة الحجرية`;
+        if (pushUrl) window.history.replaceState({ publisherName: publisher.name }, "", `?publisher=${encodeURIComponent(publisher.name)}`);
+        if (schemaEl) {
+            schemaEl.textContent = JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": publisher.name,
+                "description": publisher.bio,
+                "address": publisher.city || publisher.country || "",
+                "logo": publisher.logoUrl,
+                "url": directUrl
+            });
+        }
     } else {
-        document.title = "مكتبة الحجرية | الموسوعة العربية والوطنية لتوثيق المؤلفات والكتّاب";
-        if (pushUrl && (window.location.search.includes("book=") || window.location.search.includes("author="))) {
+        document.title = "مكتبة وموسوعة الحجرية | المنصة العربية لتوثيق المؤلفات والكتّاب ودور النشر";
+        if (pushUrl && (window.location.search.includes("book=") || window.location.search.includes("author=") || window.location.search.includes("publisher="))) {
             window.history.replaceState({}, "", window.location.pathname);
         }
     }
@@ -244,9 +375,9 @@ async function recordAuditLog(actionTitle, detailsText) {
 }
 
 // ============================================================================
-// 4. التحكم بالإشعار العلوي القابل للإخفاء، الوصف المنسدل، والفلاتر
+// 4. التحكم بالإشعار العلوي، الوصف المنسدل تحت الشعار، والتنقل السلس
 // ============================================================================
-function initTopNoticeAndCollapsibles() {
+function initHeaderInteractions() {
     const noticeBar = $("nonprofitNoticeBar");
     const hideLocal = localStorage.getItem("hujariya_hide_notice") === "1";
     if (noticeBar) {
@@ -265,17 +396,18 @@ function initTopNoticeAndCollapsibles() {
         });
     }
 
-    // انسدال وصف "موسوعة ومكتبة الحجرية" عند لمس العنوان
+    // انسدال البطاقة التعريفية عند الضغط على "يمنية المنشأ • عربية الأفق"
     if ($("toggleBrandDescBtn") && $("brandCollapsibleBox")) {
         $("toggleBrandDescBtn").addEventListener("click", () => {
             const box = $("brandCollapsibleBox");
             const isOpen = box.style.display !== "none";
             box.style.display = isOpen ? "none" : "block";
             $("toggleBrandDescBtn").classList.toggle("open", !isOpen);
+            $("toggleBrandDescBtn").setAttribute("aria-expanded", String(!isOpen));
         });
     }
 
-    // انسدال درج الفلاتر (البلد + الحقبة الزمنية)
+    // انسدال درج الفلاتر (22 دولة عربية + الحقبة الزمنية)
     if ($("toggleFiltersDrawerBtn") && $("advancedFiltersDrawer")) {
         $("toggleFiltersDrawerBtn").addEventListener("click", () => {
             const drawer = $("advancedFiltersDrawer");
@@ -285,7 +417,7 @@ function initTopNoticeAndCollapsibles() {
         });
     }
 }
-initTopNoticeAndCollapsibles();
+initHeaderInteractions();
 
 // الوضع الليلي والنهاري
 function applyThemeMode(isDark) {
@@ -303,13 +435,12 @@ if ($("quickThemeToggle")) {
     $("quickThemeToggle").addEventListener("click", () => applyThemeMode(!document.body.classList.contains("dark-mode")));
 }
 
-// التنقل بين الصفحات
 function navigateToPage(targetId, keepSeoUrl = false) {
     document.querySelectorAll(".samsung-nav-btn[data-target]").forEach(btn => {
         const navTarget = btn.getAttribute("data-target");
         const isActive = navTarget === targetId ||
             (targetId === "bookDetailPageView" && navTarget === "shelvesView") ||
-            (targetId === "authorDetailPageView" && navTarget === "authorsView");
+            ((targetId === "authorDetailPageView" || targetId === "publisherDetailPageView") && navTarget === "authorsView");
         btn.classList.toggle("active", isActive);
     });
 
@@ -318,7 +449,7 @@ function navigateToPage(targetId, keepSeoUrl = false) {
     });
 
     window.scrollTo({ top: 0, behavior: "smooth" });
-    if (!keepSeoUrl) updateSeoAndUrl(null, null, true);
+    if (!keepSeoUrl) updateSeoAndUrl({ pushUrl: true });
 }
 
 document.querySelectorAll(".samsung-nav-btn[data-target]").forEach(btn => {
@@ -332,10 +463,19 @@ if ($("backFromBookPageBtn")) {
     $("backFromBookPageBtn").addEventListener("click", () => navigateToPage("shelvesView"));
 }
 if ($("backFromAuthorPageBtn")) {
-    $("backFromAuthorPageBtn").addEventListener("click", () => navigateToPage("authorsView"));
+    $("backFromAuthorPageBtn").addEventListener("click", () => {
+        navigateToPage("authorsView");
+        if ($("tabShowAuthorsBtn")) $("tabShowAuthorsBtn").click();
+    });
+}
+if ($("backFromPublisherPageBtn")) {
+    $("backFromPublisherPageBtn").addEventListener("click", () => {
+        navigateToPage("authorsView");
+        if ($("tabShowPublishersBtn")) $("tabShowPublishersBtn").click();
+    });
 }
 
-// التبويبات الفرعية
+// التبويبات الفرعية لدليل المؤلفين ودور النشر
 if ($("tabShowAuthorsBtn") && $("tabShowPublishersBtn")) {
     $("tabShowAuthorsBtn").addEventListener("click", () => {
         $("tabShowAuthorsBtn").classList.add("active");
@@ -385,7 +525,7 @@ document.querySelectorAll(".modal-backdrop").forEach(modal => {
 });
 
 // ============================================================================
-// 5. نظام المصادقة وحساب المستخدم وأوسمة الشرف
+// 5. المصادقة وحساب المستخدم وأوسمة الشرف
 // ============================================================================
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
@@ -397,7 +537,7 @@ onAuthStateChanged(auth, async (user) => {
         authBtn.style.background = "var(--danger)";
         $("profileName").textContent = isAdmin ? `${user.displayName} (الإدارة)` : user.displayName;
         $("profileEmail").textContent = user.email;
-        $("profileAvatar").src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || "U")}&background=142622&color=c4924c`;
+        $("profileAvatar").src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || "U")}&background=12221e&color=c5934c`;
 
         $("adminBadgeIcon").style.display = isAdmin ? "flex" : "none";
         $("adminNavBtn").style.display = isAdmin ? "flex" : "none";
@@ -408,7 +548,7 @@ onAuthStateChanged(auth, async (user) => {
         authBtn.style.background = "";
         $("profileName").textContent = "زائر مكتبة الحجرية";
         $("profileEmail").textContent = "سجل دخولك لحفظ الكتب وتوثيق المؤلفات والمشاركة في النقاشات";
-        $("profileAvatar").src = "https://ui-avatars.com/api/?name=H&background=142622&color=c4924c";
+        $("profileAvatar").src = "https://ui-avatars.com/api/?name=H&background=12221e&color=c5934c";
 
         $("adminBadgeIcon").style.display = "none";
         $("adminNavBtn").style.display = "none";
@@ -477,7 +617,7 @@ function updateUserBadge() {
 }
 
 // ============================================================================
-// 6. جلب البيانات الشاملة من Firestore ومعالجة الروابط المباشرة (Deep Links)
+// 6. جلب البيانات من Firestore ومعالجة الروابط المباشرة (كتاب / مؤلف / دار نشر)
 // ============================================================================
 async function fetchAllEncyclopediaData() {
     try {
@@ -532,7 +672,6 @@ async function fetchAllEncyclopediaData() {
         populateDatalists();
         renderAllViews();
 
-        // فتح الكتاب أو الكاتب مباشرة إذا دخل الزائر عبر رابط مشاركة أو استشهاد أكاديمي
         if (!initialDeepLinkHandled) {
             initialDeepLinkHandled = true;
             handleUrlDeepLinks();
@@ -547,6 +686,7 @@ function handleUrlDeepLinks() {
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     const bookId = params.get("book") || hashParams.get("book");
     const authorName = params.get("author") || hashParams.get("author");
+    const publisherName = params.get("publisher") || hashParams.get("publisher");
 
     if (bookId) {
         const targetBook = allBooks.find(b => b.id === bookId);
@@ -557,15 +697,19 @@ function handleUrlDeepLinks() {
     }
     if (authorName) {
         openAuthorPage(authorName);
+        return;
+    }
+    if (publisherName) {
+        openPublisherPage(publisherName);
     }
 }
 
 window.addEventListener("popstate", () => handleUrlDeepLinks());
 
 function syncImplicitEntities() {
-    const knownAuthors = new Set(allAuthors.map(a => normalizeArabic(a.name)));
+    const knownAuthors = new Set(allAuthors.map(a => normalizeArabicIdentity(a.name)));
     allBooks.forEach(b => {
-        const normA = normalizeArabic(b.author);
+        const normA = normalizeArabicIdentity(b.author);
         if (normA && !knownAuthors.has(normA)) {
             knownAuthors.add(normA);
             allAuthors.push({
@@ -574,25 +718,27 @@ function syncImplicitEntities() {
                 name: b.author,
                 country: b.country || "اليمن",
                 bio: b.authorBio || "مؤلف وكاتب موثق في أرشيف مكتبة وموسوعة الحجرية.",
-                photoUrl: b.authorPhotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.author)}&background=142622&color=c4924c&size=200`,
+                photoUrl: b.authorPhotoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.author)}&background=12221e&color=c5934c&size=200`,
                 userId: b.addedByUid || ""
             });
         }
     });
 
-    const knownPubs = new Set(allPublishers.map(p => normalizeArabic(p.name)));
+    const knownPubs = new Set(allPublishers.map(p => normalizeArabicIdentity(p.name)));
     allBooks.forEach(b => {
         if (b.publisher) {
-            const normP = normalizeArabic(b.publisher);
+            const normP = normalizeArabicIdentity(b.publisher);
             if (normP && !knownPubs.has(normP)) {
                 knownPubs.add(normP);
+                const bCountry = b.country || "اليمن";
                 allPublishers.push({
                     id: "implicit_pub_" + normP,
                     isImplicit: true,
                     name: b.publisher,
-                    scope: (b.country && b.country !== "اليمن") ? "عربية / خارجية" : "يمنية",
-                    city: b.cityYear || b.country || "اليمن",
-                    bio: "دار نشر مدرجة ضمن الإصدارات الموثقة في مكتبة الحجرية.",
+                    country: bCountry,
+                    scope: bCountry !== "اليمن" ? "عربية / خارجية" : "يمنية",
+                    city: b.cityYear || bCountry,
+                    bio: "دار نشر ومؤسسة ثقافية مدرجة ضمن الإصدارات الموثقة في مكتبة وموسوعة الحجرية.",
                     verified: false,
                     status: "approved",
                     userId: b.addedByUid || ""
@@ -614,7 +760,7 @@ function populateDatalists() {
 }
 
 // ============================================================================
-// 7. عرض الرفوف النظيفة، الأعداد المدمجة في التبويبات، والترتيب الخوارزمي الخفي
+// 7. عرض الرفوف، البحث الذكي الشامل، وترتيب الخوارزمية الخفية
 // ============================================================================
 function renderAllViews() {
     updateTabCounters();
@@ -637,13 +783,31 @@ function updateTabCounters() {
     }
 }
 
-// البحث والفلاتر
+// تفاعل شريط البحث الذكي: ينتقل تلقائياً للرفوف إذا كان المستخدم داخل صفحة فرعية
 if ($("searchInput")) {
     $("searchInput").addEventListener("input", (e) => {
         const val = e.target.value;
         $("clearSearchBtn").style.display = val ? "flex" : "none";
-        if (val.trim().length > 2) trackSilentSignal("query", val.trim());
+        if (val.trim().length > 1) {
+            trackSilentSignal("query", val.trim());
+            const shelvesEl = $("shelvesView");
+            const authorsEl = $("authorsView");
+            if (shelvesEl && !shelvesEl.classList.contains("active-page") && (!authorsEl || !authorsEl.classList.contains("active-page"))) {
+                navigateToPage("shelvesView");
+            }
+        }
         renderMainBookshelf();
+        renderAuthorsAndPublishersDirectory();
+    });
+
+    $("searchInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            if (!$("shelvesView").classList.contains("active-page")) {
+                navigateToPage("shelvesView");
+            }
+            renderMainBookshelf();
+        }
     });
 }
 
@@ -652,6 +816,7 @@ if ($("clearSearchBtn")) {
         $("searchInput").value = "";
         $("clearSearchBtn").style.display = "none";
         renderMainBookshelf();
+        renderAuthorsAndPublishersDirectory();
     });
 }
 
@@ -664,7 +829,7 @@ document.querySelectorAll(".cat-tab").forEach(tab => {
             trackSilentSignal("categories", activeCategory, 1);
         }
         tab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-        if (!document.getElementById("shelvesView").classList.contains("active-page")) {
+        if (!$("shelvesView").classList.contains("active-page")) {
             navigateToPage("shelvesView");
         }
         renderMainBookshelf();
@@ -677,6 +842,7 @@ document.querySelectorAll("#countryFilterBar .mini-pill").forEach(pill => {
         pill.classList.add("active");
         activeCountry = pill.getAttribute("data-country");
         if (activeCountry !== "all") trackSilentSignal("countries", activeCountry, 1);
+        if (!$("shelvesView").classList.contains("active-page")) navigateToPage("shelvesView");
         renderMainBookshelf();
     });
 });
@@ -687,62 +853,78 @@ document.querySelectorAll("#timelineFilterBar .mini-pill").forEach(pill => {
         pill.classList.add("active");
         activeEra = pill.getAttribute("data-era");
         if (activeEra !== "all") trackSilentSignal("eras", activeEra, 1);
+        if (!$("shelvesView").classList.contains("active-page")) navigateToPage("shelvesView");
         renderMainBookshelf();
     });
 });
 
 function renderMainBookshelf() {
-    const q = ($("searchInput")?.value || "").trim().toLowerCase();
+    const rawQuery = ($("searchInput")?.value || "").trim();
     const grid = $("mainBookshelf");
     if (!grid) return;
     grid.innerHTML = "";
 
     const published = allBooks.filter(b => b.status === "published_full" || b.status === "published_no_download");
 
-    const filtered = published.filter(b => {
-        const bCat = normalizeCategory(b.category);
-        const bCountry = b.country || "اليمن";
+    const filterBooks = (ignoreFiltersForSmartSearch = false) => {
+        const results = [];
+        for (const b of published) {
+            const relevance = computeSmartSearchRelevance(b, rawQuery);
+            if (relevance === 0) continue;
 
-        const matchQ = !q ||
-            (b.title || "").toLowerCase().includes(q) ||
-            (b.author || "").toLowerCase().includes(q) ||
-            (b.publisher || "").toLowerCase().includes(q) ||
-            (b.cityYear || "").toLowerCase().includes(q) ||
-            bCountry.toLowerCase().includes(q);
+            if (!ignoreFiltersForSmartSearch) {
+                const bCat = normalizeCategory(b.category);
+                const bCountry = b.country || "اليمن";
 
-        let matchCat = true;
-        if (activeCategory === "yemeni_archive") {
-            matchCat = bCountry === "اليمن" || b.category === "تاريخ وتراث يمني";
-        } else if (activeCategory === "صوت المؤلف") {
-            matchCat = Boolean(b.audioUrl);
-        } else if (activeCategory !== "all") {
-            matchCat = bCat === activeCategory;
+                let matchCat = true;
+                if (activeCategory === "yemeni_archive") {
+                    matchCat = bCountry === "اليمن" || b.category === "تاريخ وتراث يمني";
+                } else if (activeCategory === "صوت المؤلف") {
+                    matchCat = Boolean(b.audioUrl);
+                } else if (activeCategory !== "all") {
+                    matchCat = bCat === activeCategory;
+                }
+
+                const matchCountry = activeCountry === "all" || bCountry === activeCountry;
+                const matchEra = activeEra === "all" || (b.era || "الألفية الحديثة") === activeEra;
+
+                if (!matchCat || !matchCountry || !matchEra) continue;
+            }
+            results.push({ book: b, relevance });
         }
+        return results;
+    };
 
-        const matchCountry = activeCountry === "all" || bCountry === activeCountry;
-        const matchEra = activeEra === "all" || (b.era || "الألفية الحديثة") === activeEra;
+    let matchedItems = filterBooks(false);
 
-        return matchQ && matchCat && matchCountry && matchEra;
+    // إذا كتب المستخدم بحثاً وكان داخل تصنيف فرعي لا يحوي الكتاب، يبحث الذكاء تلقائياً في كامل المكتبة
+    if (rawQuery && matchedItems.length === 0 && (activeCategory !== "all" || activeCountry !== "all" || activeEra !== "all")) {
+        matchedItems = filterBooks(true);
+    }
+
+    // ترتيب النتائج: الأولوية لدقة مطابقة البحث، ثم لوزن خوارزمية الاهتمامات الصامتة في الخلفية
+    matchedItems.sort((a, b) => {
+        if (rawQuery && b.relevance !== a.relevance) {
+            return b.relevance - a.relevance;
+        }
+        return computeSilentBookScore(b.book) - computeSilentBookScore(a.book);
     });
 
-    // ترتيب الكتب في الخلفية بصمت تام حسب اهتمامات القارئ وسلوكه
-    filtered.sort((a, b) => computeSilentBookScore(b) - computeSilentBookScore(a));
-
-    if (filtered.length === 0) {
+    if (matchedItems.length === 0) {
         grid.innerHTML = `
-            <div style="grid-column:1/-1; text-align:center; padding:50px 20px; background:var(--bg-surface); border-radius:16px; border:1px dashed var(--border-color);">
-                <i class="ri-book-2-line" style="font-size:2.5rem; color:var(--accent);"></i>
+            <div style="grid-column:1/-1; text-align:center; padding:52px 20px; background:var(--bg-surface); border-radius:16px; border:1px dashed var(--border-color);">
+                <i class="ri-search-eye-line" style="font-size:2.6rem; color:var(--accent);"></i>
                 <h4 style="margin:8px 0 4px;">لا توجد مؤلفات مطابقة</h4>
-                <p class="muted-hint">جرّب تغيير التصنيف أو أضف هذا المؤلف عبر زر «نشر كتاب»</p>
+                <p class="muted-hint">جرّب البحث بكلمات أخرى أو ساهم بتوثيق الكتاب عبر زر «نشر كتاب»</p>
             </div>
         `;
         return;
     }
 
-    filtered.forEach(book => grid.appendChild(createCleanBookCard(book)));
+    matchedItems.forEach(item => grid.appendChild(createCleanBookCard(item.book)));
 }
 
-// بطاقة الكتاب الخارجية النظيفة (الغلاف + اسم الكتاب + اسم الكاتب فقط)
+// بطاقة الكتاب الخارجية النظيفة (الغلاف + عنوان الكتاب + اسم المؤلف فقط)
 function createCleanBookCard(book, showModerationState = false) {
     const card = document.createElement("div");
     card.className = "clean-book-card";
@@ -773,26 +955,25 @@ function createCleanBookCard(book, showModerationState = false) {
 }
 
 // ============================================================================
-// 8. صفحة الكتاب المستقلة المبنية على القوائم المنسدلة (Accordions) والردود التفاعلية
+// 8. صفحة الكتاب المستقلة (بقوائم منسدلة Accordions + ربط المؤلف ودار النشر)
 // ============================================================================
 function canUserEditBook(book) {
     if (!currentUser) return false;
     if (isAdmin || book.addedByUid === currentUser.uid) return true;
     if (book.publisher) {
-        const normP = normalizeArabic(book.publisher);
-        return allPublishers.some(p => p.verified && p.userId === currentUser.uid && normalizeArabic(p.name) === normP);
+        const normP = normalizeArabicIdentity(book.publisher);
+        return allPublishers.some(p => p.verified && p.userId === currentUser.uid && normalizeArabicIdentity(p.name) === normP);
     }
     return false;
 }
 
 function openBookPage(book) {
-    currentOpenBook = book;
     trackSilentSignal("categories", normalizeCategory(book.category), 2);
-    trackSilentSignal("authors", normalizeArabic(book.author), 3);
-    trackSilentSignal("countries", book.country || "اليمن", 1);
+    trackSilentSignal("authors", normalizeArabicIdentity(book.author), 3);
+    trackSilentSignal("countries", book.country || "اليمن", 1.5);
     if (book.era) trackSilentSignal("eras", book.era, 1);
 
-    updateSeoAndUrl(book, null, true);
+    updateSeoAndUrl({ book, pushUrl: true });
     navigateToPage("bookDetailPageView", true);
 
     const isFav = userFavorites.includes(book.id);
@@ -804,10 +985,15 @@ function openBookPage(book) {
         (b.status === "published_full" || b.status === "published_no_download")
     ).length;
     const contributorRank = getContributorRank(contributorCount);
-    const contributorAvatar = book.addedByPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(book.addedByName || "م")}&background=142622&color=c4924c`;
+    const contributorAvatar = book.addedByPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(book.addedByName || "م")}&background=12221e&color=c5934c`;
 
     const hasDriveFile = book.status === "published_full" && Boolean(book.downloadLink);
     const userCanEdit = canUserEditBook(book);
+
+    // التحقق من حالة توثيق دار النشر المرتبطة بالكتاب
+    const linkedPublisherObj = book.publisher
+        ? allPublishers.find(p => normalizeArabicIdentity(p.name) === normalizeArabicIdentity(book.publisher))
+        : null;
 
     // روابط الاستشهاد الأكاديمي المباشرة للكتاب نفسه
     const directBookUrl = getBookDirectUrl(book.id);
@@ -815,45 +1001,54 @@ function openBookPage(book) {
     const pubName = book.publisher || "مكتبة وموسوعة الحجرية";
     const apaCitation = `${book.author}. (${pubYear}). ${book.title}. ${pubName}. مسترجع من: ${directBookUrl}`;
     const mlaCitation = `${book.author}. "${book.title}." ${pubName}، ${pubYear}. ${directBookUrl}`;
-    const shareText = `📚 كتاب «${book.title}» للمؤلف «${book.author}»\nتصفح الكتاب في مكتبة الحجرية:\n${directBookUrl}`;
+    const shareText = `📚 كتاب «${book.title}» للمؤلف «${book.author}»\nتصفح الكتاب في مكتبة وموسوعة الحجرية:\n${directBookUrl}`;
 
-    // الكتب المرتبطة لنفس الكاتب وكتب مشابهة
-    const normAuth = normalizeArabic(book.author);
+    const normAuth = normalizeArabicIdentity(book.author);
     const sameAuthorBooks = allBooks.filter(b =>
         b.id !== book.id &&
         (b.status === "published_full" || b.status === "published_no_download") &&
-        normalizeArabic(b.author) === normAuth
+        normalizeArabicIdentity(b.author) === normAuth
     );
     const similarBooks = allBooks.filter(b =>
         b.id !== book.id &&
         (b.status === "published_full" || b.status === "published_no_download") &&
-        normalizeArabic(b.author) !== normAuth &&
+        normalizeArabicIdentity(b.author) !== normAuth &&
         normalizeCategory(b.category) === normalizeCategory(book.category)
     ).slice(0, 8);
 
     const container = $("bookPageContentContainer");
     container.innerHTML = `
-        <!-- البطاقة العلوية للكتاب -->
         <div class="book-hero-card">
             <div class="book-hero-top">
                 <img src="${escapeHtml(book.coverUrl)}" alt="${escapeHtml(book.title)}" class="book-hero-cover">
                 <div class="book-hero-info">
                     <div class="book-tags-row">
                         <span class="soft-tag">${escapeHtml(normalizeCategory(book.category))}</span>
-                        <span class="soft-tag">${escapeHtml(book.country || "اليمن")}</span>
+                        <span class="soft-tag"><i class="ri-earth-line"></i> ${escapeHtml(book.country || "اليمن")}</span>
                         ${book.era ? `<span class="soft-tag">${escapeHtml(book.era)}</span>` : ""}
                         <span class="soft-tag" style="color:#d97706;">★ ${avg} (${book.ratingCount || 0})</span>
                     </div>
 
                     <h1>${escapeHtml(book.title)}</h1>
 
-                    <button type="button" id="pageAuthorChipBtn" class="author-link-chip">
-                        <i class="ri-quill-pen-fill" style="color:var(--accent);"></i>
-                        <span>${escapeHtml(book.author)}</span>
-                        <i class="ri-arrow-left-s-line"></i>
-                    </button>
+                    <!-- أزرار الانتقال المباشر لصفحة المؤلف وصفحة دار النشر -->
+                    <div class="entity-chips-row">
+                        <button type="button" id="pageAuthorChipBtn" class="author-link-chip" title="عرض صفحة المؤلف وجميع كتبه">
+                            <i class="ri-quill-pen-fill" style="color:var(--accent);"></i>
+                            <span>${escapeHtml(book.author)}</span>
+                            <i class="ri-arrow-left-s-line"></i>
+                        </button>
 
-                    <!-- الأزرار الرئيسية للكتاب -->
+                        ${book.publisher ? `
+                            <button type="button" id="pagePublisherChipBtn" class="author-link-chip" title="عرض صفحة دار النشر وإصداراتها">
+                                <i class="ri-building-2-fill" style="color:var(--accent);"></i>
+                                <span>${escapeHtml(book.publisher)}</span>
+                                ${linkedPublisherObj?.verified ? `<i class="ri-verified-badge-fill" style="color:var(--accent);"></i>` : ""}
+                                <i class="ri-arrow-left-s-line"></i>
+                            </button>
+                        ` : ""}
+                    </div>
+
                     <div class="book-primary-actions">
                         ${hasDriveFile ? `
                             <button type="button" id="pageReadPdfBtn" class="btn-primary-main">
@@ -883,10 +1078,10 @@ function openBookPage(book) {
             </div>
         </div>
 
-        <!-- القوائم المنسدلة المنظمة (Accordions) لجميع تفاصيل وميزات الكتاب -->
+        <!-- القوائم المنسدلة (Accordions) لجميع تفاصيل وميزات الكتاب -->
         <div class="accordion-group">
 
-            <!-- 1. القائمة المنسدلة لوصف الكتاب وركن صوت المؤلف -->
+            <!-- 1. وصف الكتاب وركن صوت المؤلف -->
             <details class="clean-accordion" open>
                 <summary>
                     <span><i class="ri-file-text-line"></i> نبذة ووصف الكتاب ${book.audioUrl ? "• (مرفق مقطع صوتي)" : ""}</span>
@@ -903,25 +1098,27 @@ function openBookPage(book) {
                 </div>
             </details>
 
-            <!-- 2. القائمة المنسدلة لبيانات النشر وبطاقة المساهم -->
+            <!-- 2. بطاقة التوثيق، دار النشر، والمساهم -->
             <details class="clean-accordion">
                 <summary>
-                    <span><i class="ri-medal-line"></i> بطاقة التوثيق، دار النشر، والمساهم</span>
+                    <span><i class="ri-medal-line"></i> بيانات النشر وبطاقة المساهم بالتوثيق</span>
                     <i class="ri-arrow-down-s-line acc-arrow"></i>
                 </summary>
                 <div class="accordion-body">
                     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:14px;">
-                        <div style="background:var(--bg-main); padding:10px 12px; border-radius:10px;">
+                        <div style="background:var(--bg-main); padding:10px 12px; border-radius:10px; cursor:${book.publisher ? 'pointer' : 'default'};" id="accPublisherBox">
                             <small class="muted-hint">دار النشر</small>
-                            <strong style="display:block; font-size:0.88rem;">${escapeHtml(book.publisher || "نشر خاص / غير محدد")}</strong>
+                            <strong style="display:flex; align-items:center; gap:5px; font-size:0.88rem; color:${book.publisher ? 'var(--accent)' : 'var(--text-main)'};">
+                                <span>${escapeHtml(book.publisher || "نشر خاص / غير محدد")}</span>
+                                ${linkedPublisherObj?.verified ? `<i class="ri-verified-badge-fill"></i>` : ""}
+                            </strong>
                         </div>
                         <div style="background:var(--bg-main); padding:10px 12px; border-radius:10px;">
-                            <small class="muted-hint">المدينة وسنة الإصدار</small>
-                            <strong style="display:block; font-size:0.88rem;">${escapeHtml(book.cityYear || book.country || "غير محدد")}</strong>
+                            <small class="muted-hint">المدينة والدولة وسنة الإصدار</small>
+                            <strong style="display:block; font-size:0.88rem;">${escapeHtml(book.cityYear || book.country || "اليمن")}</strong>
                         </div>
                     </div>
 
-                    <!-- بطاقة المساهم التحفيزية -->
                     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; background:var(--bg-main); padding:12px; border-radius:12px; border:1px solid var(--border-color);">
                         <div style="display:flex; align-items:center; gap:10px;">
                             <img src="${escapeHtml(contributorAvatar)}" style="width:42px; height:42px; border-radius:50%; object-fit:cover; border:1.5px solid var(--accent);">
@@ -937,7 +1134,7 @@ function openBookPage(book) {
 
                     ${isAdmin ? `
                         <div style="margin-top:12px; padding:12px; border:1px dashed var(--accent); border-radius:10px; background:var(--accent-soft);">
-                            <strong style="display:block; font-size:0.82rem; margin-bottom:8px;"><i class="ri-vip-crown-fill"></i> صلاحيات الإدارة السريعة:</strong>
+                            <strong style="display:block; font-size:0.82rem; margin-bottom:8px;"><i class="ri-vip-crown-fill"></i> صلاحيات الإدارة العليا:</strong>
                             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                                 <button type="button" id="admQuickToggleDl" class="btn-primary-main" style="padding:6px 12px; font-size:0.76rem;">
                                     ${book.status === 'published_full' ? 'إيقاف التحميل (تحويل لموسوعي)' : 'تفعيل التحميل والقراءة'}
@@ -954,7 +1151,7 @@ function openBookPage(book) {
                 </div>
             </details>
 
-            <!-- 3. القائمة المنسدلة للاستشهاد الأكاديمي (APA / MLA) والمشاركة بالرابط المباشر للكتاب -->
+            <!-- 3. الاستشهاد الأكاديمي (APA / MLA) والرابط المباشر للكتاب -->
             <details class="clean-accordion">
                 <summary>
                     <span><i class="ri-double-quotes-r"></i> الاستشهاد الأكاديمي المرجعي (APA / MLA) والمشاركة</span>
@@ -995,7 +1192,7 @@ function openBookPage(book) {
                 </div>
             </details>
 
-            <!-- 4. القائمة المنسدلة للمراجعات والنقاشات والردود التفاعلية (Threaded Replies) -->
+            <!-- 4. المراجعات والنقاشات والردود التفاعلية (Threaded Replies) -->
             <details class="clean-accordion" open>
                 <summary>
                     <span><i class="ri-chat-quote-line"></i> المراجعات والنقاشات التفاعلية (${bookReviews.length})</span>
@@ -1022,7 +1219,6 @@ function openBookPage(book) {
 
         </div>
 
-        <!-- الرفوف الأفقية المترابطة أسفل الصفحة -->
         ${sameAuthorBooks.length > 0 ? `
             <div class="linked-shelf-box">
                 <h3><i class="ri-quill-pen-line"></i> مؤلفات أخرى للكاتب «${escapeHtml(book.author)}»</h3>
@@ -1038,10 +1234,8 @@ function openBookPage(book) {
         ` : ""}
     `;
 
-    // بناء شجرة المراجعات والردود المتسلسلة (Threaded Replies)
     renderReviewsWithReplies(book, bookReviews);
 
-    // تعبئة الرفوف الأفقية
     const fillMiniShelf = (list, elId) => {
         const el = $(elId);
         if (!el) return;
@@ -1059,8 +1253,13 @@ function openBookPage(book) {
     fillMiniShelf(sameAuthorBooks, "sameAuthorShelf");
     fillMiniShelf(similarBooks, "similarBooksShelf");
 
-    // ربط الأحداث
     $("pageAuthorChipBtn").onclick = () => openAuthorPage(book.author);
+    if ($("pagePublisherChipBtn")) {
+        $("pagePublisherChipBtn").onclick = () => openPublisherPage(book.publisher);
+    }
+    if (book.publisher && $("accPublisherBox")) {
+        $("accPublisherBox").onclick = () => openPublisherPage(book.publisher);
+    }
 
     if ($("shareBookDirectLinkBtn")) {
         $("shareBookDirectLinkBtn").onclick = async () => {
@@ -1176,7 +1375,6 @@ function openBookPage(book) {
     }
 }
 
-// عرض المراجعات مع ميزة الرد على المساهمات (Threaded Replies)
 function renderReviewsWithReplies(book, bookReviews) {
     const container = $("bookReviewsThreadContainer");
     if (!container) return;
@@ -1272,12 +1470,11 @@ if ($("confirmDirectDownloadLink")) {
 }
 
 // ============================================================================
-// 9. صفحة المؤلف المستقلة + دليل المؤلفين ودور النشر (اليمنية والعربية)
+// 9. الصفحات المستقلة للمؤلفين ولـ "دور النشر" (توثيقاتها + الكتب المنسوبة إليها)
 // ============================================================================
 function openAuthorPage(authorName) {
-    currentOpenAuthorName = authorName;
-    const normTarget = normalizeArabic(authorName);
-    let authorObj = allAuthors.find(a => normalizeArabic(a.name) === normTarget);
+    const normTarget = normalizeArabicIdentity(authorName);
+    let authorObj = allAuthors.find(a => normalizeArabicIdentity(a.name) === normTarget);
     if (!authorObj) {
         authorObj = {
             id: "implicit_" + normTarget,
@@ -1285,42 +1482,49 @@ function openAuthorPage(authorName) {
             name: authorName,
             country: "اليمن",
             bio: "مؤلف وكاتب موثق في مكتبة وموسوعة الحجرية.",
-            photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=142622&color=c4924c`,
+            photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=12221e&color=c5934c`,
             userId: ""
         };
     }
 
     trackSilentSignal("authors", normTarget, 2);
-    updateSeoAndUrl(null, authorObj, true);
+    updateSeoAndUrl({ author: authorObj, pushUrl: true });
     navigateToPage("authorDetailPageView", true);
 
     const authorBooks = allBooks.filter(b =>
-        normalizeArabic(b.author) === normTarget &&
+        normalizeArabicIdentity(b.author) === normTarget &&
         (b.status === "published_full" || b.status === "published_no_download")
     );
 
     const canEditAuthor = isAdmin || (currentUser && authorObj.userId && authorObj.userId === currentUser.uid);
-    const photo = authorObj.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorObj.name)}&background=142622&color=c4924c`;
+    const photo = authorObj.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(authorObj.name)}&background=12221e&color=c5934c`;
 
     const container = $("authorPageContentContainer");
     container.innerHTML = `
         <div class="book-hero-card">
             <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap;">
-                <img src="${escapeHtml(photo)}" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:2.5px solid var(--accent);">
+                <img src="${escapeHtml(photo)}" style="width:92px; height:92px; border-radius:50%; object-fit:cover; border:2.5px solid var(--accent);">
                 <div style="flex:1; min-width:200px;">
-                    <span class="soft-tag">${escapeHtml(authorObj.country || "كاتب ومؤلف")}</span>
-                    <h2 style="font-family:'Amiri',serif; font-size:1.6rem; margin:6px 0;">${escapeHtml(authorObj.name)}</h2>
-                    <p class="muted-hint" style="color:var(--text-main); line-height:1.7;">${escapeHtml(authorObj.bio)}</p>
+                    <div class="book-tags-row">
+                        <span class="soft-tag"><i class="ri-quill-pen-line"></i> مؤلف موثق</span>
+                        <span class="soft-tag"><i class="ri-earth-line"></i> ${escapeHtml(authorObj.country || "اليمن")}</span>
+                        <span class="soft-tag">${authorBooks.length} مؤلفات</span>
+                    </div>
+                    <h2 style="font-family:'Amiri',serif; font-size:1.65rem; margin:6px 0;">${escapeHtml(authorObj.name)}</h2>
+                    <p class="muted-hint" style="color:var(--text-main); line-height:1.75;">${escapeHtml(authorObj.bio)}</p>
                     ${canEditAuthor ? `
                         <button type="button" id="editAuthorPageBtn" class="btn-ghost-main" style="margin-top:10px; padding:6px 12px; font-size:0.78rem;">
-                            <i class="ri-edit-line"></i> تحديث السيرة أو الصورة
+                            <i class="ri-edit-line"></i> تحديث السيرة الذاتية أو الصورة
                         </button>
                     ` : ""}
                 </div>
             </div>
         </div>
 
-        <h3 style="font-size:1.05rem; margin-bottom:14px;"><i class="ri-book-2-line" style="color:var(--accent);"></i> مؤلفات «${escapeHtml(authorObj.name)}» (${authorBooks.length})</h3>
+        <h3 style="font-size:1.05rem; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
+            <i class="ri-book-2-line" style="color:var(--accent);"></i>
+            <span>الأعمال والمؤلفات المنسوبة للكاتب «${escapeHtml(authorObj.name)}» (${authorBooks.length})</span>
+        </h3>
         <div id="authorPageBooksGrid" class="clean-books-grid"></div>
     `;
 
@@ -1342,12 +1546,133 @@ function openAuthorPage(authorName) {
                 try { await navigator.share({ title: authorObj.name, url }); return; } catch (e) {}
             }
             navigator.clipboard.writeText(url);
-            alert("تم نسخ رابط صفحة المؤلف!");
+            alert("تم نسخ الرابط المباشر لصفحة المؤلف!");
         };
     }
 }
 
-// فلتر نطاق دور النشر (يمنية / عربية وخارجية)
+// الصفحة المستقلة الخاصة بدار النشر (توثيقها، بياناتها، وجميع الكتب المنسوبة إليها)
+function openPublisherPage(publisherName) {
+    const normTarget = normalizeArabicIdentity(publisherName);
+    let pubObj = allPublishers.find(p => normalizeArabicIdentity(p.name) === normTarget);
+    if (!pubObj) {
+        pubObj = {
+            id: "implicit_pub_" + normTarget,
+            isImplicit: true,
+            name: publisherName,
+            country: "اليمن",
+            scope: "يمنية",
+            city: "اليمن",
+            bio: "دار نشر ومؤسسة ثقافية مدرجة في أرشيف مكتبة وموسوعة الحجرية.",
+            verified: false,
+            status: "approved",
+            userId: ""
+        };
+    }
+
+    updateSeoAndUrl({ publisher: pubObj, pushUrl: true });
+    navigateToPage("publisherDetailPageView", true);
+
+    const publisherBooks = allBooks.filter(b =>
+        normalizeArabicIdentity(b.publisher) === normTarget &&
+        (b.status === "published_full" || b.status === "published_no_download")
+    );
+
+    const canEditPub = isAdmin || (currentUser && pubObj.userId && pubObj.userId === currentUser.uid);
+    const logo = pubObj.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(pubObj.name)}&background=c5934c&color=fff&size=200`;
+
+    const container = $("publisherPageContentContainer");
+    container.innerHTML = `
+        <div class="book-hero-card">
+            <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap;">
+                <img src="${escapeHtml(logo)}" style="width:92px; height:92px; border-radius:50%; object-fit:cover; border:2.5px solid var(--accent); background:var(--bg-elevated);">
+                <div style="flex:1; min-width:210px;">
+                    <div class="book-tags-row">
+                        <span class="soft-tag"><i class="ri-building-2-line"></i> ${escapeHtml(pubObj.scope || "دار نشر يمنية")}</span>
+                        <span class="soft-tag"><i class="ri-map-pin-line"></i> ${escapeHtml(pubObj.city || pubObj.country || "اليمن")}</span>
+                        ${pubObj.verified ? `
+                            <span class="soft-tag" style="background:rgba(27,138,82,0.14); color:var(--success);">
+                                <i class="ri-verified-badge-fill"></i> دار نشر موثقة رسمياً
+                            </span>
+                        ` : `
+                            <span class="soft-tag">مسجلة في الأرشيف</span>
+                        `}
+                    </div>
+
+                    <h2 style="font-family:'Amiri',serif; font-size:1.68rem; margin:6px 0; display:flex; align-items:center; gap:7px;">
+                        <span>${escapeHtml(pubObj.name)}</span>
+                        ${pubObj.verified ? `<i class="ri-verified-badge-fill" style="color:var(--accent); font-size:1.35rem;" title="دار نشر موثقة بالشارة الذهبية"></i>` : ""}
+                    </h2>
+
+                    <p class="muted-hint" style="color:var(--text-main); line-height:1.75;">${escapeHtml(pubObj.bio || "دار نشر ومؤسسة ثقافية.")}</p>
+
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                        ${canEditPub ? `
+                            <button type="button" id="editPublisherPageBtn" class="btn-ghost-main" style="padding:6px 13px; font-size:0.78rem;">
+                                <i class="ri-edit-line"></i> تحديث بيانات وشعار الدار
+                            </button>
+                        ` : ""}
+                        ${!pubObj.verified && currentUser ? `
+                            <button type="button" id="claimPublisherVerifyBtn" class="btn-accent-sm" style="padding:6px 13px; font-size:0.78rem;">
+                                <i class="ri-verified-badge-line"></i> طلب توثيق هذه الدار
+                            </button>
+                        ` : ""}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- القوائم المنسدلة لتفاصيل وتوثيق الدار -->
+        <div class="accordion-group" style="margin-bottom:20px;">
+            <details class="clean-accordion">
+                <summary>
+                    <span><i class="ri-shield-check-line"></i> حالة التوثيق، الصلاحيات، والمعرف الرسمي للدار</span>
+                    <i class="ri-arrow-down-s-line acc-arrow"></i>
+                </summary>
+                <div class="accordion-body">
+                    <p style="margin-bottom:8px;">
+                        ${pubObj.verified
+                            ? "✅ هذه الدار موثقة رسمياً في مكتبة وموسوعة الحجرية، وتتمتع بصلاحية إدارة وتحديث بيانات إصداراتها ومؤلفاتها."
+                            : "ℹ️ هذه الدار مدرجة ضمن الفهرس الموسوعي العام. إذا كنت الممثل الرسمي للدار، يمكنك تقديم طلب توثيق للحصول على الشارة الذهبية وصلاحية إدارة إصداراتكم."}
+                    </p>
+                    ${pubObj.proof ? `<p class="muted-hint"><strong>المعرف / المرجع الرسمي:</strong> ${escapeHtml(pubObj.proof)}</p>` : ""}
+                </div>
+            </details>
+        </div>
+
+        <h3 style="font-size:1.05rem; margin-bottom:14px; display:flex; align-items:center; gap:6px;">
+            <i class="ri-book-shelf-line" style="color:var(--accent);"></i>
+            <span>الإصدارات والكتب المنسوبة لـ «${escapeHtml(pubObj.name)}» (${publisherBooks.length})</span>
+        </h3>
+        <div id="publisherPageBooksGrid" class="clean-books-grid"></div>
+    `;
+
+    const grid = $("publisherPageBooksGrid");
+    if (publisherBooks.length === 0) {
+        grid.innerHTML = `<p class="muted-hint">لا توجد كتب منشورة منسوبة لهذه الدار حالياً.</p>`;
+    } else {
+        publisherBooks.forEach(b => grid.appendChild(createCleanBookCard(b)));
+    }
+
+    if ($("editPublisherPageBtn")) {
+        $("editPublisherPageBtn").onclick = () => openAddOrEditPublisherModal(pubObj);
+    }
+    if ($("claimPublisherVerifyBtn")) {
+        $("claimPublisherVerifyBtn").onclick = () => openAddOrEditPublisherModal(pubObj);
+    }
+
+    if ($("sharePublisherDirectLinkBtn")) {
+        $("sharePublisherDirectLinkBtn").onclick = async () => {
+            const url = getPublisherDirectUrl(pubObj.name);
+            if (navigator.share) {
+                try { await navigator.share({ title: pubObj.name, url }); return; } catch (e) {}
+            }
+            navigator.clipboard.writeText(url);
+            alert("تم نسخ الرابط المباشر لصفحة دار النشر!");
+        };
+    }
+}
+
 document.querySelectorAll("#publisherScopeFilter .mini-pill").forEach(pill => {
     pill.addEventListener("click", () => {
         document.querySelectorAll("#publisherScopeFilter .mini-pill").forEach(p => p.classList.remove("active"));
@@ -1362,43 +1687,61 @@ function renderAuthorsAndPublishersDirectory() {
     const pubsGrid = $("publishersGridList");
     if (!authorsGrid || !pubsGrid) return;
 
+    const rawQ = normalizeArabicText($("searchInput")?.value || "");
+
     authorsGrid.innerHTML = "";
     pubsGrid.innerHTML = "";
 
     const publishedBooks = allBooks.filter(b => b.status === "published_full" || b.status === "published_no_download");
 
-    allAuthors.forEach(author => {
-        const normName = normalizeArabic(author.name);
-        const count = publishedBooks.filter(b => normalizeArabic(b.author) === normName).length;
-        const photo = author.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=142622&color=c4924c`;
-
-        const card = document.createElement("div");
-        card.className = "dir-entity-card";
-        card.innerHTML = `
-            <img src="${escapeHtml(photo)}" class="dir-entity-avatar" alt="${escapeHtml(author.name)}">
-            <div class="dir-entity-info">
-                <h4>${escapeHtml(author.name)}</h4>
-                <p>${escapeHtml(author.bio || "مؤلف وكاتب")}</p>
-                <span class="soft-tag">${count} كتاب</span>
-            </div>
-        `;
-        card.onclick = () => openAuthorPage(author.name);
-        authorsGrid.appendChild(card);
+    const filteredAuthors = allAuthors.filter(a => {
+        if (!rawQ) return true;
+        const text = normalizeArabicText(`${a.name} ${a.country || ""} ${a.bio || ""}`);
+        return rawQ.split(" ").every(tok => text.includes(tok) || text.includes(stripArabicPrefixes(tok)));
     });
+
+    if (filteredAuthors.length === 0) {
+        authorsGrid.innerHTML = `<p class="muted-hint">لا يوجد مؤلفون مطابقون للبحث.</p>`;
+    } else {
+        filteredAuthors.forEach(author => {
+            const normName = normalizeArabicIdentity(author.name);
+            const count = publishedBooks.filter(b => normalizeArabicIdentity(b.author) === normName).length;
+            const photo = author.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=12221e&color=c5934c`;
+
+            const card = document.createElement("div");
+            card.className = "dir-entity-card";
+            card.innerHTML = `
+                <img src="${escapeHtml(photo)}" class="dir-entity-avatar" alt="${escapeHtml(author.name)}">
+                <div class="dir-entity-info">
+                    <h4>${escapeHtml(author.name)}</h4>
+                    <p>${escapeHtml(author.bio || "مؤلف وكاتب")}</p>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <span class="soft-tag">${escapeHtml(author.country || "اليمن")}</span>
+                        <span class="soft-tag">${count} كتاب</span>
+                    </div>
+                </div>
+            `;
+            card.onclick = () => openAuthorPage(author.name);
+            authorsGrid.appendChild(card);
+        });
+    }
 
     const visiblePubs = allPublishers.filter(p => {
         if (p.status === "rejected") return false;
         const scope = p.scope || "يمنية";
-        return activePubScope === "all" || scope === activePubScope;
+        if (activePubScope !== "all" && scope !== activePubScope) return false;
+        if (!rawQ) return true;
+        const text = normalizeArabicText(`${p.name} ${p.city || ""} ${p.bio || ""}`);
+        return rawQ.split(" ").every(tok => text.includes(tok) || text.includes(stripArabicPrefixes(tok)));
     });
 
     if (visiblePubs.length === 0) {
-        pubsGrid.innerHTML = `<p class="muted-hint">لا توجد دور نشر في هذا القسم حالياً.</p>`;
+        pubsGrid.innerHTML = `<p class="muted-hint">لا توجد دور نشر مطابقة في هذا القسم حالياً.</p>`;
     } else {
         visiblePubs.forEach(pub => {
-            const normP = normalizeArabic(pub.name);
-            const count = publishedBooks.filter(b => normalizeArabic(b.publisher) === normP).length;
-            const logo = pub.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(pub.name)}&background=c4924c&color=fff`;
+            const normP = normalizeArabicIdentity(pub.name);
+            const count = publishedBooks.filter(b => normalizeArabicIdentity(b.publisher) === normP).length;
+            const logo = pub.logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(pub.name)}&background=c5934c&color=fff`;
 
             const card = document.createElement("div");
             card.className = "dir-entity-card";
@@ -1406,25 +1749,24 @@ function renderAuthorsAndPublishersDirectory() {
                 <img src="${escapeHtml(logo)}" class="dir-entity-avatar" alt="${escapeHtml(pub.name)}">
                 <div class="dir-entity-info">
                     <h4>
-                        ${escapeHtml(pub.name)}
+                        <span>${escapeHtml(pub.name)}</span>
                         ${pub.verified ? `<i class="ri-verified-badge-fill" style="color:var(--accent);" title="دار نشر موثقة"></i>` : ""}
                     </h4>
                     <p>${escapeHtml(pub.bio || pub.city || "")}</p>
-                    <span class="soft-tag">${escapeHtml(pub.scope || "يمنية")} • ${count} إصدار</span>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <span class="soft-tag">${escapeHtml(pub.scope || "يمنية")}</span>
+                        <span class="soft-tag">${count} إصدار</span>
+                    </div>
                 </div>
             `;
-            card.onclick = () => {
-                $("searchInput").value = pub.name;
-                $("clearSearchBtn").style.display = "flex";
-                navigateToPage("shelvesView");
-                renderMainBookshelf();
-            };
+            // الضغط على بطاقة دار النشر يفتح صفحتها المستقلة وتوثيقاتها وإصداراتها
+            card.onclick = () => openPublisherPage(pub.name);
             pubsGrid.appendChild(card);
         });
     }
 }
 
-// إضافة أو تعديل مؤلف
+// نافذة إضافة أو تعديل مؤلف (مع قائمة جميع الدول العربية الـ 22)
 function openAddOrEditAuthorModal(existingAuthor = null) {
     if (!currentUser) {
         alert("يرجى تسجيل الدخول أولاً.");
@@ -1439,26 +1781,21 @@ function openAddOrEditAuthorModal(existingAuthor = null) {
             <input type="text" id="entityAuthorName" value="${escapeHtml(existingAuthor?.name || "")}" ${existingAuthor && !existingAuthor.isImplicit ? "readonly" : ""}>
         </div>
         <div class="input-group">
-            <label>البلد / القطر العربي *</label>
+            <label>الدولة العربية *</label>
             <select id="entityAuthorCountry">
-                <option value="اليمن">🇾🇪 اليمن</option>
-                <option value="السعودية">🇸🇦 السعودية</option>
-                <option value="مصر">🇪🇬 مصر</option>
-                <option value="الشام والعراق">🏛️ الشام والعراق</option>
-                <option value="الخليج العربي">🌊 الخليج العربي</option>
-                <option value="المغرب العربي">🌍 المغرب العربي</option>
+                ${getCountrySelectOptionsHtml(existingAuthor?.country || "اليمن")}
             </select>
         </div>
         <div class="input-group">
-            <label>السيرة الذاتية والنبذة *</label>
-            <textarea id="entityAuthorBio" rows="4">${escapeHtml(existingAuthor?.bio || "")}</textarea>
+            <label>السيرة الذاتية والنبذة التعريفية *</label>
+            <textarea id="entityAuthorBio" rows="4" placeholder="اكتب نبذة وافية عن مسيرة الكاتب ومؤلفاته...">${escapeHtml(existingAuthor?.bio || "")}</textarea>
         </div>
         <div class="input-group">
             <label>صورة المؤلف (اختياري)</label>
             <input type="file" id="entityAuthorPhoto" accept="image/*">
         </div>
         <div id="entityStatusMsg" class="status-msg"></div>
-        <button type="button" id="saveAuthorEntityBtn" class="btn-primary-main w-100">حفظ بيانات المؤلف</button>
+        <button type="button" id="saveAuthorEntityBtn" class="btn-primary-main w-100">حفظ بطاقة المؤلف</button>
     `;
 
     $("saveAuthorEntityBtn").onclick = async () => {
@@ -1471,7 +1808,7 @@ function openAddOrEditAuthorModal(existingAuthor = null) {
 
         if (!name || !bio) {
             msg.style.color = "var(--danger)";
-            msg.textContent = "يرجى إدخال الاسم والنبذة.";
+            msg.textContent = "يرجى إدخال اسم المؤلف والنبذة التعريفية.";
             return;
         }
 
@@ -1506,76 +1843,77 @@ function openAddOrEditAuthorModal(existingAuthor = null) {
     $("addEntityModal").style.display = "flex";
 }
 
-if ($("openNewAuthorModalBtn")) $("openNewAuthorModalBtn").onclick = () => openAddOrEditAuthorModal(null);
-if ($("closeAddEntityModal")) $("closeAddEntityModal").onclick = () => $("addEntityModal").style.display = "none";
+// نافذة إضافة أو توثيق أو تعديل دار نشر
+function openAddOrEditPublisherModal(existingPub = null) {
+    if (!currentUser) {
+        alert("يرجى تسجيل الدخول أولاً.");
+        navigateToPage("profileView");
+        return;
+    }
 
-// إضافة أو توثيق دار نشر (يمنية أو عربية/خارجية)
-if ($("openNewPublisherModalBtn")) {
-    $("openNewPublisherModalBtn").onclick = () => {
-        if (!currentUser) {
-            alert("يرجى تسجيل الدخول أولاً.");
-            navigateToPage("profileView");
+    $("addEntityModalTitle").innerHTML = `<i class="ri-building-2-line"></i> ${existingPub ? "تحديث / توثيق دار النشر" : "إضافة وتوثيق دار نشر"}`;
+    $("addEntityModalBody").innerHTML = `
+        <div class="input-group">
+            <label>اسم دار النشر *</label>
+            <input type="text" id="pubNameInput" value="${escapeHtml(existingPub?.name || "")}" placeholder="مثال: دار صفقات كتابية / دار الآداب">
+        </div>
+        <div class="grid-2col">
+            <div class="input-group">
+                <label>تصنيف الدار *</label>
+                <select id="pubScopeInput">
+                    <option value="يمنية" ${(existingPub?.scope || "يمنية") === "يمنية" ? "selected" : ""}>🇾🇪 دار نشر يمنية</option>
+                    <option value="عربية / خارجية" ${existingPub?.scope === "عربية / خارجية" ? "selected" : ""}>🌍 دار نشر عربية / خارجية</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>الدولة والمقر *</label>
+                <input type="text" id="pubCityInput" value="${escapeHtml(existingPub?.city || "")}" placeholder="مثال: تعز / القاهرة / بيروت">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>الموقع الرسمي أو المعرف لإثبات التوثيق *</label>
+            <input type="text" id="pubProofInput" value="${escapeHtml(existingPub?.proof || "")}" placeholder="رابط الموقع أو الصفحة الرسمية للدار...">
+        </div>
+        <div class="input-group">
+            <label>نبذة تعريفية عن الدار وإصداراتها *</label>
+            <textarea id="pubBioInput" rows="3" placeholder="نبذة عن تأسيس الدار ورسالتها الثقافية...">${escapeHtml(existingPub?.bio || "")}</textarea>
+        </div>
+        <div class="input-group">
+            <label>شعار دار النشر (اختياري)</label>
+            <input type="file" id="pubLogoInput" accept="image/*">
+        </div>
+        <div id="pubStatusMsg" class="status-msg"></div>
+        <button type="button" id="submitPubVerifyBtn" class="btn-primary-main w-100">حفظ بيانات الدار</button>
+    `;
+
+    $("submitPubVerifyBtn").onclick = async () => {
+        const name = $("pubNameInput").value.trim();
+        const scope = $("pubScopeInput").value;
+        const city = $("pubCityInput").value.trim();
+        const proof = $("pubProofInput").value.trim();
+        const bio = $("pubBioInput").value.trim();
+        const file = $("pubLogoInput").files[0];
+        const msg = $("pubStatusMsg");
+        const btn = $("submitPubVerifyBtn");
+
+        if (!name || !city || !bio) {
+            msg.style.color = "var(--danger)";
+            msg.textContent = "يرجى إكمال الحقول المطلوبة.";
             return;
         }
 
-        $("addEntityModalTitle").innerHTML = `<i class="ri-building-2-line"></i> إضافة / توثيق دار نشر`;
-        $("addEntityModalBody").innerHTML = `
-            <div class="input-group">
-                <label>اسم دار النشر *</label>
-                <input type="text" id="pubNameInput" placeholder="مثال: دار صفقات كتابية / دار الآداب">
-            </div>
-            <div class="grid-2col">
-                <div class="input-group">
-                    <label>نطاق الدار *</label>
-                    <select id="pubScopeInput">
-                        <option value="يمنية">🇾🇪 دار نشر يمنية</option>
-                        <option value="عربية / خارجية">🌍 دار نشر عربية / خارجية</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>المدينة والمقر *</label>
-                    <input type="text" id="pubCityInput" placeholder="مثال: تعز / بيروت / القاهرة">
-                </div>
-            </div>
-            <div class="input-group">
-                <label>رابط الموقع أو المعرف الرسمي للتوثيق *</label>
-                <input type="text" id="pubProofInput" placeholder="رابط الصفحة الرسمية أو البريد الرسمي...">
-            </div>
-            <div class="input-group">
-                <label>نبذة عن الدار *</label>
-                <textarea id="pubBioInput" rows="3"></textarea>
-            </div>
-            <div class="input-group">
-                <label>شعار الدار (اختياري)</label>
-                <input type="file" id="pubLogoInput" accept="image/*">
-            </div>
-            <div id="pubStatusMsg" class="status-msg"></div>
-            <button type="button" id="submitPubVerifyBtn" class="btn-primary-main w-100">إرسال وحفظ الدار</button>
-        `;
+        btn.disabled = true;
+        msg.textContent = "جاري الحفظ...";
 
-        $("submitPubVerifyBtn").onclick = async () => {
-            const name = $("pubNameInput").value.trim();
-            const scope = $("pubScopeInput").value;
-            const city = $("pubCityInput").value.trim();
-            const proof = $("pubProofInput").value.trim();
-            const bio = $("pubBioInput").value.trim();
-            const file = $("pubLogoInput").files[0];
-            const msg = $("pubStatusMsg");
-            const btn = $("submitPubVerifyBtn");
+        try {
+            let logoUrl = existingPub?.logoUrl || "";
+            if (file) logoUrl = await compressAndUploadImage(file, 400, 0.8);
 
-            if (!name || !city || !bio) {
-                msg.style.color = "var(--danger)";
-                msg.textContent = "يرجى إكمال الحقول المطلوبة.";
-                return;
-            }
-
-            btn.disabled = true;
-            msg.textContent = "جاري الإرسال...";
-
-            try {
-                let logoUrl = "";
-                if (file) logoUrl = await compressAndUploadImage(file, 400, 0.8);
-
+            if (existingPub && !existingPub.isImplicit) {
+                await updateDoc(doc(db, "reviews", existingPub.id), {
+                    name, scope, city, proof, bio, logoUrl, updatedAt: Date.now()
+                });
+            } else {
                 await addDoc(collection(db, "reviews"), {
                     recordType: "publisher",
                     name, scope, city, proof, bio, logoUrl,
@@ -1586,21 +1924,26 @@ if ($("openNewPublisherModalBtn")) {
                     userName: currentUser.displayName,
                     createdAt: Date.now()
                 });
-
-                await fetchAllEncyclopediaData();
-                $("addEntityModal").style.display = "none";
-            } catch (e) {
-                msg.textContent = "حدث خطأ، حاول مجدداً.";
-                btn.disabled = false;
             }
-        };
 
-        $("addEntityModal").style.display = "flex";
+            await fetchAllEncyclopediaData();
+            $("addEntityModal").style.display = "none";
+            openPublisherPage(name);
+        } catch (e) {
+            msg.textContent = "حدث خطأ، حاول مجدداً.";
+            btn.disabled = false;
+        }
     };
+
+    $("addEntityModal").style.display = "flex";
 }
 
+if ($("openNewAuthorModalBtn")) $("openNewAuthorModalBtn").onclick = () => openAddOrEditAuthorModal(null);
+if ($("openNewPublisherModalBtn")) $("openNewPublisherModalBtn").onclick = () => openAddOrEditPublisherModal(null);
+if ($("closeAddEntityModal")) $("closeAddEntityModal").onclick = () => $("addEntityModal").style.display = "none";
+
 // ============================================================================
-// 10. رفع وتعديل الكتب + منع التكرار
+// 10. رفع وتعديل الكتب + منع التكرار الذكي
 // ============================================================================
 const addBookModal = $("addBookModal");
 
@@ -1658,8 +2001,8 @@ function openBookFormModal(bookToEdit = null) {
 
 function checkDuplicateRealtime() {
     const editingId = $("editingBookId").value;
-    const normT = normalizeArabic($("bookTitleInput").value);
-    const normA = normalizeArabic($("bookAuthorInput").value);
+    const normT = normalizeArabicIdentity($("bookTitleInput").value);
+    const normA = normalizeArabicIdentity($("bookAuthorInput").value);
     const warnBox = $("duplicateWarningBox");
 
     if (!normT || !normA) {
@@ -1669,8 +2012,8 @@ function checkDuplicateRealtime() {
 
     const dup = allBooks.find(b =>
         b.id !== editingId &&
-        normalizeArabic(b.title) === normT &&
-        normalizeArabic(b.author) === normA
+        normalizeArabicIdentity(b.title) === normT &&
+        normalizeArabicIdentity(b.author) === normA
     );
 
     if (dup) {
@@ -1724,8 +2067,8 @@ if ($("submitBookBtn")) {
             let coverUrl = existingBook ? existingBook.coverUrl : "";
             if (coverFile) coverUrl = await compressAndUploadImage(coverFile, 800, 0.78);
 
-            const normAuth = normalizeArabic(author);
-            const authorExists = allAuthors.some(a => !a.isImplicit && normalizeArabic(a.name) === normAuth);
+            const normAuth = normalizeArabicIdentity(author);
+            const authorExists = allAuthors.some(a => !a.isImplicit && normalizeArabicIdentity(a.name) === normAuth);
             if (!authorExists && (newAuthorBio || newAuthorPhotoFile)) {
                 let authorPhotoUrl = "";
                 if (newAuthorPhotoFile) authorPhotoUrl = await compressAndUploadImage(newAuthorPhotoFile, 450, 0.8);
@@ -1965,7 +2308,7 @@ function openReportTicketModal(book = null, existingTicket = null) {
 if ($("closeReportModal")) $("closeReportModal").onclick = () => $("reportModal").style.display = "none";
 
 // ============================================================================
-// 12. مكتبتي ولوحة الإدارة ولوحة الشرف وتثبيت التطبيق الحقيقي (PWA)
+// 12. مكتبتي ولوحة الإدارة ولوحة الشرف وتثبيت التطبيق (PWA)
 // ============================================================================
 document.querySelectorAll("#myUploadsStatusFilter .mini-pill").forEach(pill => {
     pill.addEventListener("click", () => {
@@ -2100,16 +2443,17 @@ function renderAdminDashboard() {
             const d = document.createElement("div");
             d.className = "stack-card";
             d.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                     <div>
                         <span class="soft-tag">${escapeHtml(p.scope || "يمنية")}</span>
-                        <h4>${escapeHtml(p.name)} (${escapeHtml(p.city)})</h4>
+                        <h4 style="cursor:pointer;" class="adm-pub-title">${escapeHtml(p.name)} (${escapeHtml(p.city)})</h4>
                         <small class="muted-hint">${escapeHtml(p.proof)}</small>
                     </div>
-                    <button type="button" class="btn-accent-sm">${p.verified ? "إلغاء التوثيق" : "توثيق الدار"}</button>
+                    <button type="button" class="btn-accent-sm adm-pub-btn">${p.verified ? "إلغاء التوثيق" : "توثيق الدار"}</button>
                 </div>
             `;
-            d.querySelector("button").onclick = async () => {
+            d.querySelector(".adm-pub-title").onclick = () => openPublisherPage(p.name);
+            d.querySelector(".adm-pub-btn").onclick = async () => {
                 await updateDoc(doc(db, "reviews", p.id), { verified: !p.verified, status: !p.verified ? "approved" : "pending" });
                 fetchAllEncyclopediaData();
             };
@@ -2136,7 +2480,7 @@ if ($("openHonorBoardBtn")) {
             if (!counts[k]) {
                 counts[k] = {
                     name: b.addedByName || "باحث",
-                    photo: b.addedByPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.addedByName || "م")}&background=142622&color=c4924c`,
+                    photo: b.addedByPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.addedByName || "م")}&background=12221e&color=c5934c`,
                     count: 0
                 };
             }
@@ -2169,11 +2513,11 @@ if ($("openFaqModalBtn")) {
             <div class="accordion-group">
                 <details class="clean-accordion" open>
                     <summary><span>ما هي مكتبة وموسوعة الحجرية؟</span><i class="ri-arrow-down-s-line acc-arrow"></i></summary>
-                    <div class="accordion-body">منصة ثقافية غير ربحية يمنية المنشأ عربية الأفق، لتوثيق المؤلفات والكتّاب ودور النشر العربية واليمنية.</div>
+                    <div class="accordion-body">مؤسسة ثقافية غير ربحية، يمنية المنشأ عربية الأفق، لتوثيق المؤلفات والكتّاب ودور النشر في كافة الدول العربية.</div>
                 </details>
                 <details class="clean-accordion">
-                    <summary><span>كيف تعمل روابط الاستشهاد والمشاركة؟</span><i class="ri-arrow-down-s-line acc-arrow"></i></summary>
-                    <div class="accordion-body">كل كتاب ومؤلف يمتلك رابطاً مباشراً خاصاً به يفتح صفحة الكتاب فوراً عند النقر عليه.</div>
+                    <summary><span>كيف تعمل صفحات الكتّاب ودور النشر والروابط المباشرة؟</span><i class="ri-arrow-down-s-line acc-arrow"></i></summary>
+                    <div class="accordion-body">كل كتاب، وكل مؤلف، وكل دار نشر تمتلك صفحة مستقلة ورابطاً مباشراً خاصاً بها يفتح صفحتها فوراً عند المشاركة أو الاستشهاد الأكاديمي.</div>
                 </details>
             </div>
         `;
@@ -2200,7 +2544,7 @@ if ($("installPwaBtn")) {
             await deferredPwaPrompt.userChoice;
             deferredPwaPrompt = null;
         } else {
-            alert("لتثبيت التطبيق مباشرة على شاشتك الرئيسية:\n• في كروم (أندرويد): افتح قائمة المتصفح (⋮) واختر «تثبيت التطبيق» أو «الإضافة إلى الشاشة الرئيسية».\n• في سفاري (آيفون): اضغط زر المشاركة ثم اختر «إضافة إلى الصفحة الرئيسية».");
+            alert("لتثبيت تطبيق الحجرية على شاشتك الرئيسية:\n• في أندرويد (Chrome): افتح قائمة المتصفح (⋮) واختر «تثبيت التطبيق» أو «الإضافة إلى الشاشة الرئيسية».\n• في آيفون (Safari): اضغط زر المشاركة ثم اختر «إضافة إلى الصفحة الرئيسية».");
         }
     };
 }
