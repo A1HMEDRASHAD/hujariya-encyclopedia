@@ -2,31 +2,37 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
     <!-- الأرشفة الذكية ومحركات البحث ونماذج الذكاء الاصطناعي (SEO & AIO) -->
-    <title>مكتبة الحجرية | الموسوعة العربية والوطنية لتوثيق المؤلفات والكتّاب</title>
-    <meta name="description" content="مكتبة وموسوعة الحجرية: مؤسسة ثقافية غير ربحية، يمنية المنشأ عربية الأفق، لتوثيق وأرشفة المؤلفات والكتّاب ودور النشر العربية واليمنية.">
-    <meta name="keywords" content="مكتبة الحجرية, موسوعة الحجرية, كتب عربية, كتب يمنية, الأرشيف اليمني, مؤلفين عرب, دور نشر, قراءة كتب PDF">
-    <meta name="robots" content="index, follow">
-    <meta property="og:title" content="مكتبة الحجرية | المنصة الثقافية لتوثيق المؤلفات والكتّاب">
-    <meta property="og:description" content="تصفح واقرأ ووثّق المؤلفات العربية واليمنية في مكتبة وموسوعة الحجرية الرقمية.">
+    <title>مكتبة وموسوعة الحجرية | المنصة العربية لتوثيق المؤلفات والكتّاب ودور النشر</title>
+    <meta name="description" content="مكتبة وموسوعة الحجرية الرقمية: مؤسسة ثقافية غير ربحية، يمنية المنشأ عربية الأفق، لتوثيق وأرشفة المؤلفات والكتّاب ودور النشر في كافة الدول العربية.">
+    <meta name="keywords" content="الحجرية, مكتبة الحجرية, موسوعة الحجرية, كتب عربية, كتب يمنية, الأرشيف اليمني, مؤلفين عرب, دور نشر عربية, قراءة كتب PDF">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta property="og:title" content="مكتبة وموسوعة الحجرية | يمنية المنشأ • عربية الأفق">
+    <meta property="og:description" content="المنصة الثقافية الرقمية لتوثيق المؤلفات والكتّاب ودور النشر العربية واليمنية.">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ar_AR">
-    <meta name="theme-color" content="#142622">
+    <meta property="og:image" id="ogImageMeta" content="logo.jpg">
+    <meta name="theme-color" content="#12221e">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="مكتبة الحجرية">
+    <meta name="apple-mobile-web-app-title" content="الحجرية">
 
-    <!-- بيانات Schema.org الديناميكية لأرشفة الكتب والمؤلفين في جوجل ومحركات الذكاء الاصطناعي -->
+    <!-- أيقونة المتصفح ومحركات البحث والتطبيق (الشعار الأصلي المربع) -->
+    <link rel="icon" id="faviconLink" type="image/jpeg" href="logo.jpg">
+    <link rel="apple-touch-icon" id="appleTouchIconLink" href="logo.jpg">
+
+    <!-- بيانات Schema.org الديناميكية لأرشفة الكتب والمؤلفين ودور النشر في جوجل ومحركات الذكاء الاصطناعي -->
     <script id="dynamicJsonLd" type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "Library",
       "name": "مكتبة وموسوعة الحجرية",
       "alternateName": "Hujariya Library & Encyclopedia",
-      "description": "مؤسسة ثقافية غير ربحية يمنية المنشأ عربية الأفق لتوثيق المؤلفات والكتّاب ودور النشر",
+      "slogan": "يمنية المنشأ • عربية الأفق",
+      "description": "مؤسسة ثقافية غير ربحية يمنية المنشأ عربية الأفق لتوثيق المؤلفات والكتّاب ودور النشر في الوطن العربي",
       "url": "https://a1hmedrashad.github.io/hujariya-encyclopedia1/"
     }
     </script>
@@ -42,31 +48,31 @@
     <!-- ملف التصميم الخارجي -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- تأسيس أولي مدمج لمنع أي تشوه بصري أثناء التحميل -->
+    <!-- تأسيس أولي مدمج لمنع أي وميض أثناء التحميل -->
     <style>
         :root {
-            --bg-main: #f7f5f0;
+            --bg-main: #f6f4ee;
             --bg-surface: #ffffff;
-            --bg-elevated: #efeae0;
-            --primary: #142622;
-            --accent: #c4924c;
-            --text-main: #151e1c;
-            --text-muted: #64706d;
-            --border-color: #e4dfd5;
+            --bg-elevated: #ede8dd;
+            --primary: #12221e;
+            --accent: #c5934c;
+            --text-main: #141d1b;
+            --text-muted: #5f6c68;
+            --border-color: #e2ddd2;
         }
         body.dark-mode {
-            --bg-main: #0b0f0e;
-            --bg-surface: #131a18;
-            --bg-elevated: #1b2422;
-            --primary: #1f3a34;
-            --accent: #d4a359;
-            --text-main: #f2f5f4;
-            --text-muted: #95a39f;
-            --border-color: #23302d;
+            --bg-main: #0a0e0d;
+            --bg-surface: #121917;
+            --bg-elevated: #1a2321;
+            --primary: #1d3630;
+            --accent: #d6a45c;
+            --text-main: #f1f5f4;
+            --text-muted: #94a39e;
+            --border-color: #222f2c;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body, input, button, select, textarea { font-family: 'IBM Plex Sans Arabic', sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); padding-bottom: 110px; overflow-x: hidden; }
+        body { background-color: var(--bg-main); color: var(--text-main); padding-bottom: 115px; overflow-x: hidden; }
         .view-page { display: none; }
         .view-page.active-page { display: block; }
         .modal-backdrop { display: none; }
@@ -74,12 +80,12 @@
 </head>
 <body class="light-mode">
 
-    <!-- إشعار المؤسسة غير الربحية القابل للإغلاق الدائم (✕) -->
+    <!-- شريط الإشعار العلوي القابل للإغلاق الدائم (✕) -->
     <div id="nonprofitNoticeBar" class="top-notice-bar" style="display:none;">
         <div class="notice-inner">
             <div class="notice-text">
                 <i class="ri-shield-check-fill"></i>
-                <span>مؤسسة ثقافية غير ربحية لتوثيق وحفظ المؤلفات والكتّاب العرب واليمنيين</span>
+                <span>مؤسسة ثقافية غير ربحية لتوثيق وحفظ المؤلفات والكتّاب ودور النشر العربية واليمنية</span>
             </div>
             <button type="button" id="dismissNoticeBtn" class="notice-close-btn" title="إخفاء هذا الإشعار دائماً">
                 <i class="ri-close-line"></i>
@@ -87,29 +93,25 @@
         </div>
     </div>
 
-    <!-- الهيدر العصري النظيف مع الهوية المنسدلة باللمس -->
+    <!-- الهيدر العصري المتجاوب مع الشعار المفرغ الجديد والعبارة التفاعلية المنسدلة -->
     <header class="app-header">
         <div class="header-container">
             <div class="header-top-row">
-                <!-- الشعار والعنوان القابل للانسدال -->
-                <div class="brand-wrapper">
-                    <div class="logo-holder" id="brandHomeLogoBtn" title="العودة للرئيسية">
+                <!-- منطقة الشعار الرسمي المفرغ + عبارة "يمنية المنشأ • عربية الأفق" القابلة للانسدال -->
+                <div class="brand-hero-stack">
+                    <div class="header-logo-banner" id="brandHomeLogoBtn" title="العودة للرئيسية">
                         <img
-                            id="officialLogoImg"
+                            id="headerWideLogoImg"
                             src="logo.jpg"
-                            data-ibb="https://ibb.co/4wfWtyZ7"
-                            width="48"
-                            height="48"
-                            alt="شعار مكتبة الحجرية"
+                            data-wide-ibb="https://ibb.co/rhF177H"
+                            data-icon-ibb="https://ibb.co/4wfWtyZ7"
+                            alt="مكتبة وموسوعة الحجرية"
                         >
                     </div>
-                    <div class="brand-title-box">
-                        <button type="button" id="toggleBrandDescBtn" class="brand-title-trigger">
-                            <h1>مكتبة الحجرية</h1>
-                            <i class="ri-arrow-down-s-line" id="brandArrowIcon"></i>
-                        </button>
-                        <span class="brand-mini-tag">يمنية المنشأ • عربية الأفق</span>
-                    </div>
+                    <button type="button" id="toggleBrandDescBtn" class="tagline-dropdown-trigger" aria-expanded="false">
+                        <span>يمنية المنشأ • عربية الأفق</span>
+                        <i class="ri-arrow-down-s-line" id="brandArrowIcon"></i>
+                    </button>
                 </div>
 
                 <!-- أدوات الهيدر السريعة -->
@@ -120,51 +122,67 @@
                     <button type="button" class="icon-btn" id="openFaqModalBtn" title="دليل المنصة والأسئلة الشائعة">
                         <i class="ri-question-line"></i>
                     </button>
-                    <button type="button" class="icon-btn" id="quickThemeToggle" title="تبديل المظهر الليلي/النهاري">
+                    <button type="button" class="icon-btn" id="quickThemeToggle" title="تبديل الوضع الليلي / النهاري">
                         <i class="ri-contrast-2-line"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- البطاقة التعريفية المنسدلة عند لمس عنوان "مكتبة الحجرية" -->
+            <!-- البطاقة التعريفية المنسدلة عند لمس عبارة "يمنية المنشأ • عربية الأفق" -->
             <div id="brandCollapsibleBox" class="brand-dropdown-panel" style="display:none;">
                 <div class="brand-dropdown-content">
-                    <strong><i class="ri-quill-pen-fill"></i> موسوعة ومكتبة الحجرية الرقمية</strong>
-                    <p>منارة ثقافية وموسوعة توثيقية غير ربحية انطلقت من اليمن لتحتضن الإرث الأدبي والفكري العربي واليمني، وتتيح القراءة الرقمية والاستشهاد الأكاديمي المرجعي مع الحماية الكاملة لحقوق الملكية الفكرية.</p>
+                    <strong><i class="ri-book-open-fill"></i> مكتبة وموسوعة الحجرية الرقمية</strong>
+                    <p>مؤسسة ثقافية وموسوعة توثيقية غير ربحية انطلقت من اليمن لتحتضن النتاج الأدبي والفكري في كافة أقطار الوطن العربي، وتتيح القراءة الرقمية المباشرة، وتوثيق الكتّاب ودور النشر، والاستشهاد الأكاديمي المرجعي مع الحماية الكاملة لحقوق الملكية الفكرية.</p>
                 </div>
             </div>
 
-            <!-- شريط البحث الذكي + زر الفلترة المنسدلة -->
+            <!-- شريط البحث الذكي الفائق الدقة + زر التصفية المتجاوب -->
             <div class="search-bar-row">
                 <div class="search-input-group">
-                    <i class="ri-search-2-line search-icon"></i>
-                    <input type="text" id="searchInput" placeholder="ابحث عن كتاب، مؤلف، دار نشر، أو بلد...">
-                    <button type="button" id="clearSearchBtn" class="clear-input-btn" style="display:none;">
+                    <i class="ri-search-eye-line search-icon"></i>
+                    <input type="text" id="searchInput" autocomplete="off" placeholder="ابحث بذكاء عن كتاب، مؤلف، دار نشر، أو دولة عربية...">
+                    <button type="button" id="clearSearchBtn" class="clear-input-btn" style="display:none;" title="مسح البحث">
                         <i class="ri-close-circle-fill"></i>
                     </button>
                 </div>
-                <button type="button" id="toggleFiltersDrawerBtn" class="filter-toggle-btn" title="فلترة حسب البلد أو الحقبة الزمنية">
+                <button type="button" id="toggleFiltersDrawerBtn" class="filter-toggle-btn" title="تصفية حسب الدولة العربية أو الحقبة الزمنية">
                     <i class="ri-equalizer-line"></i>
-                    <span>تصفية</span>
+                    <span class="filter-btn-label">تصفية</span>
                 </button>
             </div>
 
-            <!-- درج الفلاتر المنسدل (البلد العربي + الحقبة الزمنية) -->
+            <!-- درج الفلاتر المنسدل (جميع الدول العربية الـ 22 + الحقبة الزمنية) -->
             <div id="advancedFiltersDrawer" class="filters-collapsible-drawer" style="display:none;">
                 <div class="filter-group-row">
-                    <label><i class="ri-earth-line"></i> النطاق الجغرافي / البلد:</label>
+                    <label><i class="ri-earth-line"></i> القطر / الدولة العربية (جامعة الدول العربية):</label>
                     <div class="mini-pills-scroll" id="countryFilterBar">
                         <button type="button" class="mini-pill active" data-country="all">كل الدول العربية</button>
                         <button type="button" class="mini-pill" data-country="اليمن">🇾🇪 اليمن</button>
                         <button type="button" class="mini-pill" data-country="السعودية">🇸🇦 السعودية</button>
                         <button type="button" class="mini-pill" data-country="مصر">🇪🇬 مصر</button>
-                        <button type="button" class="mini-pill" data-country="الشام والعراق">🏛️ الشام والعراق</button>
-                        <button type="button" class="mini-pill" data-country="الخليج العربي">🌊 الخليج العربي</button>
-                        <button type="button" class="mini-pill" data-country="المغرب العربي">🌍 المغرب العربي</button>
+                        <button type="button" class="mini-pill" data-country="الإمارات">🇦🇪 الإمارات</button>
+                        <button type="button" class="mini-pill" data-country="قطر">🇶🇦 قطر</button>
+                        <button type="button" class="mini-pill" data-country="الكويت">🇰🇼 الكويت</button>
+                        <button type="button" class="mini-pill" data-country="سلطنة عمان">🇴🇲 سلطنة عمان</button>
+                        <button type="button" class="mini-pill" data-country="البحرين">🇧🇭 البحرين</button>
+                        <button type="button" class="mini-pill" data-country="العراق">🇮🇶 العراق</button>
+                        <button type="button" class="mini-pill" data-country="سوريا">🇸🇾 سوريا</button>
+                        <button type="button" class="mini-pill" data-country="الأردن">🇯🇴 الأردن</button>
+                        <button type="button" class="mini-pill" data-country="فلسطين">🇵🇸 فلسطين</button>
+                        <button type="button" class="mini-pill" data-country="لبنان">🇱🇧 لبنان</button>
+                        <button type="button" class="mini-pill" data-country="السودان">🇸🇩 السودان</button>
+                        <button type="button" class="mini-pill" data-country="ليبيا">🇱🇾 ليبيا</button>
+                        <button type="button" class="mini-pill" data-country="تونس">🇹🇳 تونس</button>
+                        <button type="button" class="mini-pill" data-country="الجزائر">🇩🇿 الجزائر</button>
+                        <button type="button" class="mini-pill" data-country="المغرب">🇲🇦 المغرب</button>
+                        <button type="button" class="mini-pill" data-country="موريتانيا">🇲🇷 موريتانيا</button>
+                        <button type="button" class="mini-pill" data-country="الصومال">🇸🇴 الصومال</button>
+                        <button type="button" class="mini-pill" data-country="جيبوتي">🇩🇯 جيبوتي</button>
+                        <button type="button" class="mini-pill" data-country="جزر القمر">🇰🇲 جزر القمر</button>
                     </div>
                 </div>
                 <div class="filter-group-row" style="margin-top:10px;">
-                    <label><i class="ri-history-line"></i> الحقبة الزمنية:</label>
+                    <label><i class="ri-history-line"></i> الحقبة الزمنية للإصدار:</label>
                     <div class="mini-pills-scroll" id="timelineFilterBar">
                         <button type="button" class="mini-pill active" data-era="all">جميع العصور</button>
                         <button type="button" class="mini-pill" data-era="الألفية الحديثة">الألفية الحديثة (2000+)</button>
@@ -176,7 +194,7 @@
                 </div>
             </div>
 
-            <!-- شريط التصنيفات السلس (أسلوب يوتيوب) مدمج بالأعداد بدون زحمة -->
+            <!-- شريط التصنيفات السلس مدمج بالأعداد الحية -->
             <div class="categories-strip-wrapper">
                 <div class="categories-track" id="categoriesTabs">
                     <button type="button" class="cat-tab active" data-cat="all">
@@ -218,15 +236,15 @@
         </div>
     </header>
 
-    <!-- المحتوى الرئيسي للمنصة -->
+    <!-- المحتوى الرئيسي المتجاوب لجميع الشاشات -->
     <main class="main-container">
 
-        <!-- ==================== 1. الصفحة الرئيسية: الرفوف النظيفة (مرتبة ذكياً بالخلفية) ==================== -->
+        <!-- ==================== 1. الصفحة الرئيسية: الرفوف النظيفة (غلاف + عنوان + مؤلف فقط) ==================== -->
         <section id="shelvesView" class="view-page active-page">
             <div id="mainBookshelf" class="clean-books-grid"></div>
         </section>
 
-        <!-- ==================== 2. صفحة الكتاب المستقلة (تفتح عند الضغط على أي كتاب) ==================== -->
+        <!-- ==================== 2. صفحة الكتاب المستقلة (بقوائم منسدلة Accordions) ==================== -->
         <section id="bookDetailPageView" class="view-page">
             <div class="subpage-top-nav">
                 <button type="button" id="backFromBookPageBtn" class="back-pill-btn">
@@ -236,15 +254,14 @@
                 <div class="subpage-actions">
                     <button type="button" id="shareBookDirectLinkBtn" class="back-pill-btn">
                         <i class="ri-share-forward-line"></i>
-                        <span>مشاركة رابط الكتاب</span>
+                        <span>مشاركة الكتاب</span>
                     </button>
                 </div>
             </div>
-            <!-- تفاصيل الكتاب المبنية على القوائم المنسدلة (Accordions) -->
             <div id="bookPageContentContainer" class="book-page-layout"></div>
         </section>
 
-        <!-- ==================== 3. صفحة المؤلف المستقلة (تفتح عند الضغط على أي كاتب) ==================== -->
+        <!-- ==================== 3. صفحة المؤلف المستقلة ==================== -->
         <section id="authorDetailPageView" class="view-page">
             <div class="subpage-top-nav">
                 <button type="button" id="backFromAuthorPageBtn" class="back-pill-btn">
@@ -253,18 +270,33 @@
                 </button>
                 <button type="button" id="shareAuthorDirectLinkBtn" class="back-pill-btn">
                     <i class="ri-share-forward-line"></i>
-                    <span>مشاركة صفحة الكاتب</span>
+                    <span>مشاركة صفحة المؤلف</span>
                 </button>
             </div>
             <div id="authorPageContentContainer"></div>
         </section>
 
-        <!-- ==================== 4. دليل المؤلفين ودور النشر (اليمنية والعربية) ==================== -->
+        <!-- ==================== 4. صفحة دار النشر المستقلة (تعرض توثيقها وإصداراتها المرتبطة) ==================== -->
+        <section id="publisherDetailPageView" class="view-page">
+            <div class="subpage-top-nav">
+                <button type="button" id="backFromPublisherPageBtn" class="back-pill-btn">
+                    <i class="ri-arrow-right-line"></i>
+                    <span>العودة لدور النشر</span>
+                </button>
+                <button type="button" id="sharePublisherDirectLinkBtn" class="back-pill-btn">
+                    <i class="ri-share-forward-line"></i>
+                    <span>مشاركة صفحة الدار</span>
+                </button>
+            </div>
+            <div id="publisherPageContentContainer"></div>
+        </section>
+
+        <!-- ==================== 5. دليل المؤلفين ودور النشر (اليمنية والعربية) ==================== -->
         <section id="authorsView" class="view-page">
             <div class="segmented-control">
                 <button type="button" class="seg-btn active" id="tabShowAuthorsBtn">
                     <i class="ri-quill-pen-line"></i>
-                    <span>المؤلفون</span>
+                    <span>المؤلفون والكتّاب</span>
                     <em class="seg-badge" id="dirAuthorsCountBadge">0</em>
                 </button>
                 <button type="button" class="seg-btn" id="tabShowPublishersBtn">
@@ -277,7 +309,7 @@
             <!-- قائمة المؤلفين -->
             <div id="authorsDirectoryBox">
                 <div class="directory-action-bar">
-                    <p class="muted-hint">تصفح سير ومؤلفات الكتّاب العرب واليمنيين</p>
+                    <p class="muted-hint">اضغط على أي مؤلف لاستعراض سيرته الذاتية ومؤلفاته الموثقة</p>
                     <button type="button" id="openNewAuthorModalBtn" class="btn-accent-sm">
                         <i class="ri-user-add-line"></i><span>إضافة مؤلف جديد</span>
                     </button>
@@ -285,7 +317,7 @@
                 <div id="authorsGridList" class="directory-cards-grid"></div>
             </div>
 
-            <!-- قائمة دور النشر (مقسمة: يمنية + عربية/خارجية) -->
+            <!-- قائمة دور النشر -->
             <div id="publishersDirectoryBox" style="display:none;">
                 <div class="directory-action-bar">
                     <div class="mini-pills-scroll" id="publisherScopeFilter">
@@ -301,7 +333,7 @@
             </div>
         </section>
 
-        <!-- ==================== 5. مكتبتي (المفضلة + حالة مساهماتي + محادثات البلاغات) ==================== -->
+        <!-- ==================== 6. مكتبتي (المحفوظات + مساهماتي + بلاغاتي) ==================== -->
         <section id="myLibraryView" class="view-page">
             <div class="segmented-control">
                 <button type="button" class="seg-btn active" data-mylib="savedPart">
@@ -335,7 +367,7 @@
             </div>
         </section>
 
-        <!-- ==================== 6. لوحة الإدارة المطلقة ==================== -->
+        <!-- ==================== 7. غرفة الإدارة المطلقة ==================== -->
         <section id="adminView" class="view-page">
             <div class="segmented-control">
                 <button type="button" class="seg-btn active" data-admintab="adminPendingTab">
@@ -347,7 +379,7 @@
                     <em class="seg-badge" id="adminReportsCount">0</em>
                 </button>
                 <button type="button" class="seg-btn" data-admintab="adminPublishersTab">
-                    <span>دور النشر</span>
+                    <span>توثيق الدور</span>
                     <em class="seg-badge" id="adminPubsCount">0</em>
                 </button>
                 <button type="button" class="seg-btn" data-admintab="adminAuditTab">
@@ -369,11 +401,11 @@
             </div>
         </section>
 
-        <!-- ==================== 7. حسابي والإعدادات وتثبيت التطبيق ==================== -->
+        <!-- ==================== 8. حسابي والإعدادات وتثبيت التطبيق ==================== -->
         <section id="profileView" class="view-page">
             <div class="profile-summary-card">
                 <div class="avatar-ring">
-                    <img id="profileAvatar" src="https://ui-avatars.com/api/?name=H&background=142622&color=c4924c" width="84" height="84" alt="صورة الحساب">
+                    <img id="profileAvatar" src="https://ui-avatars.com/api/?name=H&background=12221e&color=c5934c" width="84" height="84" alt="صورة الحساب">
                     <span id="adminBadgeIcon" class="crown-badge" style="display:none;"><i class="ri-vip-crown-fill"></i></span>
                 </div>
                 <h2 id="profileName">زائر مكتبة الحجرية</h2>
@@ -390,14 +422,13 @@
                 </button>
             </div>
 
-            <!-- إعدادات منظمة بقوائم منسدلة أنيقة -->
             <div class="accordion-group">
                 <div class="setting-tile">
                     <div class="tile-info">
                         <i class="ri-moon-clear-line"></i>
                         <div>
                             <strong>الوضع الليلي المريح للقراءة</strong>
-                            <small>تبديل مظهر المكتبة بين النهاري والليلي</small>
+                            <small>تبديل مظهر المكتبة بين النهاري العاجي والليلي الزمردي</small>
                         </div>
                     </div>
                     <label class="ios-switch">
@@ -408,22 +439,22 @@
 
                 <div class="setting-tile clickable-tile" id="installPwaBtn">
                     <div class="tile-info">
-                        <i class="ri-download-cloud-2-line"></i>
+                        <i class="ri-apps-2-add-line"></i>
                         <div>
-                            <strong>تثبيت تطبيق مكتبة الحجرية (PWA)</strong>
-                            <small id="pwaInstallStatusSub">ثبّت المنصة كتطبيق مستقل على شاشة هاتفك</small>
+                            <strong>تثبيت تطبيق مكتبة الحجرية</strong>
+                            <small id="pwaInstallStatusSub">ثبّت المنصة كتطبيق رسمي مستقل بأيقونة الحجرية على جهازك</small>
                         </div>
                     </div>
-                    <span class="btn-accent-sm">تثبيت</span>
+                    <span class="btn-accent-sm"><i class="ri-install-line"></i> تثبيت</span>
                 </div>
 
                 <details class="clean-accordion">
                     <summary>
-                        <span><i class="ri-scales-3-line"></i> الشروط القانونية وحقوق الملكية الفكرية</span>
+                        <span><i class="ri-scales-3-line"></i> البيان القانوني وحماية حقوق الملكية الفكرية</span>
                         <i class="ri-arrow-down-s-line acc-arrow"></i>
                     </summary>
                     <div class="accordion-body">
-                        <p><strong>مكتبة وموسوعة الحجرية:</strong> مؤسسة ثقافية غير ربحية تُعنى بتوثيق النتاج الفكري العربي واليمني. الكتب المأذون بنشرها تتاح للقراءة والتحميل المباشر، أما الكتب المحمية بحقوق النشر فتُدرج كبطاقات موسوعية للتعريف والاستشهاد الأكاديمي والمراجعة النقدية فقط دون المساس بحقوق أصحابها.</p>
+                        <p><strong>مكتبة وموسوعة الحجرية:</strong> مؤسسة ثقافية غير ربحية، يمنية المنشأ عربية الأفق، تُعنى بتوثيق النتاج الفكري العربي واليمني. الكتب المأذون بنشرها تتاح للقراءة والتحميل المباشر، أما الكتب المحمية بحقوق النشر فتُدرج كبطاقات موسوعية للتعريف والاستشهاد الأكاديمي والمراجعة النقدية فقط دون المساس بحقوق أصحابها، مع إتاحة التعديل المباشر لدور النشر الموثقة ونظام البلاغات الفوري.</p>
                     </div>
                 </details>
             </div>
@@ -469,7 +500,7 @@
         </div>
     </nav>
 
-    <!-- ==================== نافذة إضافة / تعديل كتاب (مبنية بالقوائم المنسدلة لعدم التزاحم) ==================== -->
+    <!-- ==================== نافذة إضافة / تعديل كتاب ==================== -->
     <div id="addBookModal" class="modal-backdrop">
         <div class="modal-card">
             <div class="modal-header">
@@ -488,18 +519,18 @@
                     <div class="label-split">
                         <label>اسم المؤلف *</label>
                         <button type="button" class="link-action-btn" id="toggleNewAuthorInlineBtn">
-                            <i class="ri-user-add-line"></i> إضافة سيرة وصورة للمؤلف
+                            <i class="ri-user-add-line"></i> إضافة نبذة وصورة للمؤلف
                         </button>
                     </div>
                     <input type="text" id="bookAuthorInput" list="existingAuthorsDatalist" placeholder="اختر مؤلفاً مسجلاً أو اكتب اسمه...">
                     <datalist id="existingAuthorsDatalist"></datalist>
                 </div>
 
-                <!-- قائمة منسدلة لبيانات المؤلف الجديد -->
+                <!-- صندوق منسدل لبيانات المؤلف الجديد -->
                 <div id="inlineNewAuthorFields" class="collapsible-subbox" style="display:none;">
                     <div class="input-group">
-                        <label>نبذة وسيرة مختصرة عن المؤلف</label>
-                        <textarea id="newAuthorBioInput" rows="2" placeholder="نبذة تعريفية عن الكاتب..."></textarea>
+                        <label>نبذة وسيرة مختصرة عن المؤلف *</label>
+                        <textarea id="newAuthorBioInput" rows="2" placeholder="نبذة تعريفية عن الكاتب ومولده وإسهاماته..."></textarea>
                     </div>
                     <div class="input-group">
                         <label>صورة المؤلف (اختياري)</label>
@@ -512,7 +543,7 @@
 
                 <div class="grid-2col">
                     <div class="input-group">
-                        <label>التصنيف *</label>
+                        <label>التصنيف الموضوعي *</label>
                         <select id="bookCategoryInput">
                             <option value="روايات وأدب">روايات وأدب</option>
                             <option value="تاريخ وتراث">تاريخ وتراث</option>
@@ -524,22 +555,37 @@
                         </select>
                     </div>
                     <div class="input-group">
-                        <label>بلد المؤلف / الإصدار *</label>
+                        <label>الدولة العربية *</label>
                         <select id="bookCountryInput">
                             <option value="اليمن">🇾🇪 اليمن</option>
                             <option value="السعودية">🇸🇦 السعودية</option>
                             <option value="مصر">🇪🇬 مصر</option>
-                            <option value="الشام والعراق">🏛️ الشام والعراق</option>
-                            <option value="الخليج العربي">🌊 الخليج العربي</option>
-                            <option value="المغرب العربي">🌍 المغرب العربي</option>
-                            <option value="دولة عربية أخرى">دولة عربية أخرى</option>
+                            <option value="الإمارات">🇦🇪 الإمارات</option>
+                            <option value="قطر">🇶🇦 قطر</option>
+                            <option value="الكويت">🇰🇼 الكويت</option>
+                            <option value="سلطنة عمان">🇴🇲 سلطنة عمان</option>
+                            <option value="البحرين">🇧🇭 البحرين</option>
+                            <option value="العراق">🇮🇶 العراق</option>
+                            <option value="سوريا">🇸🇾 سوريا</option>
+                            <option value="الأردن">🇯🇴 الأردن</option>
+                            <option value="فلسطين">🇵🇸 فلسطين</option>
+                            <option value="لبنان">🇱🇧 لبنان</button>
+                            <option value="السودان">🇸🇩 السودان</option>
+                            <option value="ليبيا">🇱🇾 ليبيا</option>
+                            <option value="تونس">🇹🇳 تونس</option>
+                            <option value="الجزائر">🇩🇿 الجزائر</option>
+                            <option value="المغرب">🇲🇦 المغرب</option>
+                            <option value="موريتانيا">🇲🇷 موريتانيا</option>
+                            <option value="الصومال">🇸🇴 الصومال</option>
+                            <option value="جيبوتي">🇩🇯 جيبوتي</option>
+                            <option value="جزر القمر">🇰🇲 جزر القمر</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="input-group">
                     <label>نبذة ووصف الكتاب *</label>
-                    <textarea id="bookDescInput" rows="3" placeholder="ملخص عن مضمون الكتاب وأهميته..."></textarea>
+                    <textarea id="bookDescInput" rows="3" placeholder="ملخص وافٍ عن مضمون الكتاب وأهميته..."></textarea>
                 </div>
 
                 <div class="input-group">
@@ -561,7 +607,7 @@
                         <div class="grid-2col">
                             <div class="input-group">
                                 <label>دار النشر</label>
-                                <input type="text" id="bookPublisherInput" list="existingPublishersDatalist" placeholder="اسم دار النشر...">
+                                <input type="text" id="bookPublisherInput" list="existingPublishersDatalist" placeholder="اختر أو اكتب اسم دار النشر...">
                                 <datalist id="existingPublishersDatalist"></datalist>
                             </div>
                             <div class="input-group">
@@ -584,9 +630,8 @@
                         <div class="input-group">
                             <label><i class="ri-drive-line"></i> رابط ملف PDF على جوجل درايف (للقراءة والتحميل)</label>
                             <input type="url" id="bookDriveInput" placeholder="https://drive.google.com/file/d/...">
-                            <!-- تعليمات فتح صلاحية جوجل درايف في قائمة منسدلة فرعية -->
                             <details class="mini-guide-details">
-                                <summary><i class="ri-error-warning-line"></i> هام: كيف تفتح صلاحية رابط جوجل درايف؟ (اضغط للعرض)</summary>
+                                <summary><i class="ri-error-warning-line"></i> تنبيه: كيف تفتح صلاحية رابط جوجل درايف؟ (اضغط للعرض)</summary>
                                 <ol>
                                     <li>افتح Google Drive واضغط النقاط الثلاث بجانب ملف الكتاب.</li>
                                     <li>اختر <strong>مشاركة (Share)</strong> ثم <strong>إدارة الوصول (Manage access)</strong>.</li>
@@ -625,7 +670,7 @@
         </div>
     </div>
 
-    <!-- ==================== نافذة إضافة كاتب أو دار نشر (يمنية / عربية) ==================== -->
+    <!-- ==================== نافذة إضافة كاتب أو دار نشر ==================== -->
     <div id="addEntityModal" class="modal-backdrop">
         <div class="modal-card">
             <div class="modal-header">
@@ -678,64 +723,137 @@
         </div>
     </div>
 
-    <!-- محرك استخلاص الشعار الرسمي من ibb.co/4wfWtyZ7 + تفعيل التثبيت الحقيقي لتطبيق الويب (PWA) -->
+    <!-- محرك الشعار المزدوج: الشعار المفرغ العريض للهيدر (مع قص الفراغات تلقائياً) + الشعار القديم كأيقونة للتطبيق ومحركات البحث -->
     <script>
-        (async function initLogoAndTruePWA() {
-            const logoEl = document.getElementById('officialLogoImg');
-            let resolvedLogo = localStorage.getItem('hujariya_official_logo_direct') || '';
+        (async function initDualLogosAndPWA() {
+            const wideLogoEl = document.getElementById('headerWideLogoImg');
+            const wideIbbUrl = wideLogoEl?.getAttribute('data-wide-ibb') || 'https://ibb.co/rhF177H';
+            const iconIbbUrl = wideLogoEl?.getAttribute('data-icon-ibb') || 'https://ibb.co/4wfWtyZ7';
 
-            if (logoEl && resolvedLogo) {
-                logoEl.src = resolvedLogo;
-            } else if (logoEl) {
-                const ibbUrl = logoEl.getAttribute('data-ibb') || 'https://ibb.co/4wfWtyZ7';
+            async function resolveIbbDirectUrl(pageUrl, cacheKey) {
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) return cached;
                 try {
-                    const r = await fetch('https://api.microlink.io/?url=' + encodeURIComponent(ibbUrl));
+                    const r = await fetch('https://api.microlink.io/?url=' + encodeURIComponent(pageUrl));
                     const d = await r.json();
                     if (d?.data?.image?.url) {
-                        resolvedLogo = d.data.image.url;
-                        logoEl.src = resolvedLogo;
-                        localStorage.setItem('hujariya_official_logo_direct', resolvedLogo);
+                        localStorage.setItem(cacheKey, d.data.image.url);
+                        return d.data.image.url;
                     }
                 } catch (e) {}
+                try {
+                    const r2 = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(pageUrl));
+                    const d2 = await r2.json();
+                    const m = d2.contents && d2.contents.match(/property="og:image"\s+content="([^"]+)"/i);
+                    if (m && m[1]) {
+                        localStorage.setItem(cacheKey, m[1]);
+                        return m[1];
+                    }
+                } catch (e2) {}
+                return '';
             }
 
-            // توليد أيقونة قياسية وملف Manifest و Service Worker برمجياً لقبول تثبيت التطبيق الحقيقي على أندرويد وآيفون
-            const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#142622';
-            ctx.fillRect(0, 0, 512, 512);
-            ctx.strokeStyle = '#c4924c';
-            ctx.lineWidth = 18;
-            ctx.strokeRect(24, 24, 464, 464);
-            ctx.fillStyle = '#c4924c';
-            ctx.font = 'bold 90px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('الحجرية', 256, 256);
-            const iconPngUrl = canvas.toDataURL('image/png');
+            // قص الهوامش الشفافة حول الشعار المفرغ ليظهر بحجمه الكامل والواضح في الهيدر
+            async function autoTrimTransparentLogo(imgUrl) {
+                const cachedTrimmed = localStorage.getItem('hujariya_wide_logo_trimmed_v2');
+                if (cachedTrimmed) return cachedTrimmed;
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous';
+                    img.onload = () => {
+                        try {
+                            const c = document.createElement('canvas');
+                            c.width = img.width;
+                            c.height = img.height;
+                            const ctx = c.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+                            const imgData = ctx.getImageData(0, 0, c.width, c.height);
+                            const data = imgData.data;
+                            let top = c.height, left = c.width, right = 0, bottom = 0;
+                            let found = false;
 
-            const appleIcon = document.createElement('link');
-            appleIcon.rel = 'apple-touch-icon';
-            appleIcon.href = resolvedLogo || iconPngUrl;
-            document.head.appendChild(appleIcon);
+                            for (let y = 0; y < c.height; y++) {
+                                for (let x = 0; x < c.width; x++) {
+                                    const alpha = data[(y * c.width + x) * 4 + 3];
+                                    const r = data[(y * c.width + x) * 4];
+                                    const g = data[(y * c.width + x) * 4 + 1];
+                                    const b = data[(y * c.width + x) * 4 + 2];
+                                    // تجاهل الخلفية الشفافة أو السوداء الخالصة في الأطراف
+                                    if (alpha > 25 && (r > 12 || g > 12 || b > 12)) {
+                                        if (x < left) left = x;
+                                        if (x > right) right = x;
+                                        if (y < top) top = y;
+                                        if (y > bottom) bottom = y;
+                                        found = true;
+                                    }
+                                }
+                            }
 
+                            if (!found || right <= left || bottom <= top) {
+                                resolve(imgUrl);
+                                return;
+                            }
+
+                            const pad = 8;
+                            left = Math.max(0, left - pad);
+                            top = Math.max(0, top - pad);
+                            right = Math.min(c.width, right + pad);
+                            bottom = Math.min(c.height, bottom + pad);
+
+                            const trimmedW = right - left;
+                            const trimmedH = bottom - top;
+                            const out = document.createElement('canvas');
+                            out.width = trimmedW;
+                            out.height = trimmedH;
+                            out.getContext('2d').drawImage(c, left, top, trimmedW, trimmedH, 0, 0, trimmedW, trimmedH);
+                            const dataUrl = out.toDataURL('image/png');
+                            localStorage.setItem('hujariya_wide_logo_trimmed_v2', dataUrl);
+                            resolve(dataUrl);
+                        } catch (err) {
+                            resolve(imgUrl);
+                        }
+                    };
+                    img.onerror = () => resolve(imgUrl);
+                    img.src = imgUrl;
+                });
+            }
+
+            const [directWideUrl, directAppIconUrl] = await Promise.all([
+                resolveIbbDirectUrl(wideIbbUrl, 'hujariya_wide_logo_raw'),
+                resolveIbbDirectUrl(iconIbbUrl, 'hujariya_official_logo_direct')
+            ]);
+
+            if (wideLogoEl && directWideUrl) {
+                const trimmedLogo = await autoTrimTransparentLogo(directWideUrl);
+                wideLogoEl.src = trimmedLogo;
+                wideLogoEl.classList.add('wide-logo-ready');
+            }
+
+            // تثبيت الشعار القديم المربع كأيقونة للتطبيق ومحركات البحث
+            const finalAppIcon = directAppIconUrl || 'logo.jpg';
+            const favEl = document.getElementById('faviconLink');
+            const appleEl = document.getElementById('appleTouchIconLink');
+            const ogEl = document.getElementById('ogImageMeta');
+            if (favEl) favEl.href = finalAppIcon;
+            if (appleEl) appleEl.href = finalAppIcon;
+            if (ogEl) ogEl.content = finalAppIcon;
+
+            // بناء Manifest رسمي بأيقونة الشعار القديم لتفعيل تثبيت التطبيق (PWA)
             const manifestObj = {
                 name: "مكتبة وموسوعة الحجرية",
-                short_name: "مكتبة الحجرية",
-                description: "المكتبة والموسوعة الرقمية لتوثيق المؤلفات والكتّاب العرب واليمنيين",
+                short_name: "الحجرية",
+                description: "مؤسسة ثقافية غير ربحية يمنية المنشأ عربية الأفق لتوثيق المؤلفات والكتّاب ودور النشر",
                 start_url: window.location.origin + window.location.pathname,
                 scope: window.location.origin + window.location.pathname,
                 display: "standalone",
                 orientation: "portrait",
-                background_color: "#142622",
-                theme_color: "#142622",
+                background_color: "#12221e",
+                theme_color: "#12221e",
                 dir: "rtl",
                 lang: "ar",
                 icons: [
-                    { src: iconPngUrl, sizes: "192x192", type: "image/png", purpose: "any maskable" },
-                    { src: iconPngUrl, sizes: "512x512", type: "image/png", purpose: "any maskable" }
+                    { src: finalAppIcon, sizes: "192x192", type: "image/png", purpose: "any maskable" },
+                    { src: finalAppIcon, sizes: "512x512", type: "image/png", purpose: "any maskable" }
                 ]
             };
 
