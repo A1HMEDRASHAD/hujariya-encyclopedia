@@ -3167,4 +3167,158 @@ function renderAdminDashboard() {
             card.querySelector(".approve-edit-btn").onclick = async () => {
                 await updateDoc(doc(db, "books", ed.bookId), { ...p, updatedAt: Date.now() });
                 await deleteDoc(doc(db, "reviews", ed.id));
-                await record
+                await recordAuditLog("اعتماد مقترح إثراء كتاب", ed.bookTitle);
+                fetchAllEncyclopediaData();
+            };
+            card.querySelector(".reject-edit-btn").onclick = async () => {
+                await deleteDoc(doc(db, "reviews", ed.id));
+                fetchAllEncyclopediaData();
+            };
+            editsContainer.appendChild(card);
+        });
+    }
+
+    // 3. البلاغات
+    const repContainer = $("adminReportsList");
+    if (repContainer) {
+        repContainer.innerHTML = allReports.length === 0 ? `<p class="muted-hint">لا توجد بلاغات.</p>` : "";
+        allReports.forEach(r => {
+            const d = document.createElement("div");
+            d.className = "stack-card";
+            d.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span class="soft-tag">${r.status === "resolved" ? "محلول" : "نشط"}</span>
+                        <h4>${escapeHtml(r.bookTitle)}</h4>
+                        <small class="muted-hint">${escapeHtml(r.userName)} • ${escapeHtml(r.reason)}</small>
+                    </div>
+                    <button type="button" class="btn-primary-main" style="padding:7px 13px; font-size:0.78rem;">فتح المحادثة</button>
+                </div>
+            `;
+            d.querySelector("button").onclick = () => openReportTicketModal(null, r);
+            repContainer.appendChild(d);
+        });
+    }
+
+    // 4. توثيق دور النشر
+    const pubsContainer = $("adminPublishersList");
+    if (pubsContainer) {
+        const realPubs = allPublishers.filter(p => !p.isImplicit);
+        pubsContainer.innerHTML = realPubs.length === 0 ? `<p class="muted-hint">لا توجد طلبات دور نشر.</p>` : "";
+        realPubs.forEach(p => {
+            const d = document.createElement("div");
+            d.className = "stack-card";
+            d.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div>
+                        <span class="soft-tag">${escapeHtml(p.scope || "يمنية")}</span>
+                        <h4 style="cursor:pointer;" class="adm-pub-title">${escapeHtml(p.name)} (${escapeHtml(p.city)})</h4>
+                        <small class="muted-hint">${escapeHtml(p.proof)}</small>
+                    </div>
+                    <button type="button" class="btn-accent-sm adm-pub-btn">${p.verified ? "إلغاء التوثيق" : "توثيق الدار"}</button>
+                </div>
+            `;
+            d.querySelector(".adm-pub-title").onclick = () => openPublisherPage(p.name);
+            d.querySelector(".adm-pub-btn").onclick = async () => {
+                await updateDoc(doc(db, "reviews", p.id), { verified: !p.verified, status: !p.verified ? "approved" : "pending" });
+                fetchAllEncyclopediaData();
+            };
+            pubsContainer.appendChild(d);
+        });
+    }
+
+    // 5. السجل الرقابي
+    const auditContainer = $("adminAuditLogsList");
+    if (auditContainer) {
+        auditContainer.innerHTML = allAuditLogs.slice(0, 25).map(l => `
+            <div class="stack-card" style="padding:10px 14px;">
+                <strong>${escapeHtml(l.actionTitle)}</strong> — <span class="muted-hint">${escapeHtml(l.detailsText)} (${escapeHtml(l.userName)})</span>
+            </div>
+        `).join("");
+    }
+}
+
+// لوحة الشرف ودليل المنصة
+if ($("openHonorBoardBtn")) {
+    $("openHonorBoardBtn").onclick = () => {
+        const counts = {};
+        allBooks.filter(b => b.status === "published_full" || b.status === "published_no_download").forEach(b => {
+            const k = b.addedByUid || b.addedByName || "anon";
+            if (!counts[k]) {
+                counts[k] = {
+                    name: b.addedByName || "باحث",
+                    photo: b.addedByPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.addedByName || "م")}&background=12221e&color=c5934c`,
+                    count: 0
+                };
+            }
+            counts[k].count++;
+        });
+        const top = Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 15);
+
+        $("infoModalTitle").innerHTML = `<i class="ri-medal-fill"></i> لوحة الشرف للمساهمين`;
+        $("infoModalBody").innerHTML = top.map((u, i) => `
+            <div class="stack-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <strong style="color:var(--accent);">#${i + 1}</strong>
+                    <img src="${escapeHtml(u.photo)}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                    <div>
+                        <h4>${escapeHtml(u.name)}</h4>
+                        <small class="muted-hint">${getContributorRank(u.count).title}</small>
+                    </div>
+                </div>
+                <span class="soft-tag">${u.count} كتاب</span>
+            </div>
+        `).join("") || `<p class="muted-hint">لا توجد مساهمات بعد.</p>`;
+        $("infoModal").style.display = "flex";
+    };
+}
+
+if ($("openFaqModalBtn")) {
+    $("openFaqModalBtn").onclick = () => {
+        $("infoModalTitle").innerHTML = `<i class="ri-question-line"></i> دليل مكتبة وموسوعة الحجرية (الإصدار 1.5)`;
+        $("infoModalBody").innerHTML = `
+            <div class="accordion-group">
+                <details class="clean-accordion" open>
+                    <summary><span>ما هو نظام «إصدارات الحجرية» للنشر الرقمي؟</span><i class="ri-arrow-down-s-line acc-arrow"></i></summary>
+                    <div class="accordion-body">تتبنى مكتبة وموسوعة الحجرية نشر الأعمال الرقمية للمؤلفين والباحثين، وتمنح كل عمل مقبول رقم إيداع مرجعي فريد (<code>HJ-PUB-YYYY-XXXX</code>) وشهادة توثيق رقمية تحفظ أسبقية النشر وتدعم الاستشهاد الأكاديمي.</div>
+                </details>
+                <details class="clean-accordion">
+                    <summary><span>كيف تعمل المزامنة السحابية للقراءة؟</span><i class="ri-arrow-down-s-line acc-arrow"></i></summary>
+                    <div class="accordion-body">أثناء قراءة أي كتاب، يمكنك حفظ رقم الصفحة وملاحظاتك الشخصية في السحابة، وعند فتح حسابك من أي هاتف أو كمبيوتر آخر ستجد الكتاب يفتح من نفس الصفحة التي توقفت عندها.</div>
+                </details>
+                <details class="clean-accordion">
+                    <summary><span>كيف يتم الربط السحابي للشخصيات العامة والمؤلفين؟</span><i class="ri-arrow-down-s-line acc-arrow"></i></summary>
+                    <div class="accordion-body">يُتاح للجميع المساهمة بتوثيق مؤلفات الشخصيات العامة والأعلام الراحلين (مثل البردوني والمقالح وغيرهم) مباشرة من صفحاتهم، ويرفض النظام تلقائياً أي كتاب مكرر.</div>
+                </details>
+            </div>
+        `;
+        $("infoModal").style.display = "flex";
+    };
+}
+
+if ($("closeInfoModal")) $("closeInfoModal").onclick = () => $("infoModal").style.display = "none";
+
+// دعم تثبيت التطبيق الرسمي الآمن (WebAPK بدون تحذير Play Protect)
+let deferredPwaPrompt = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPwaPrompt = e;
+    if ($("pwaInstallStatusSub")) {
+        $("pwaInstallStatusSub").textContent = "التطبيق جاهز للتثبيت المباشر والآمن بضغطة واحدة";
+    }
+});
+
+if ($("installPwaBtn")) {
+    $("installPwaBtn").onclick = async () => {
+        if (deferredPwaPrompt) {
+            deferredPwaPrompt.prompt();
+            await deferredPwaPrompt.userChoice;
+            deferredPwaPrompt = null;
+        } else {
+            alert("لتثبيت تطبيق الحجرية الرسمي بأمان تام:\n• في أندرويد (Chrome): افتح قائمة المتصفح (⋮) واختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».\n• في آيفون (Safari): اضغط زر المشاركة ثم اختر «إضافة إلى الصفحة الرئيسية».");
+        }
+    };
+}
+
+// الانطلاق
+fetchAllEncyclopediaData();
